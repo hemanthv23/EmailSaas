@@ -32,7 +32,7 @@ var isDev = builder.Environment.IsDevelopment();
 // ✅ Swagger — full config in Dev, filtered to [Tags("Public")] only in Production
 builder.Services.AddSwaggerGen(options =>
 {
-    SwaggerConfiguration.ConfigureSwaggerGen(options, isDev);
+    SwaggerConfiguration.ConfigureSwaggerGen(options); // Removed isDev argument
 
     options.DocInclusionPredicate((docName, apiDesc) =>
     {

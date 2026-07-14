@@ -1,8 +1,11 @@
-﻿using EmailSaas.Application.Common.Interfaces;
+﻿using Azure.Core;
+using Azure.Identity;
+using EmailSaas.Application.Common.Interfaces;
 using EmailSaas.Application.Features.Tracking.Commands.RecordEmailBounced;
 using MailKit;
 using MailKit.Net.Imap;
 using MailKit.Search;
+using MailKit.Security;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,7 +20,7 @@ namespace EmailSaas.Infrastructure.Services
     {
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly ILogger<BounceMailboxListenerService> _logger;
-        private const int PollingIntervalSeconds = 120; // this can stay global — it's not client-specific data
+        private const int PollingIntervalSeconds = 120;
 
         private static readonly Regex MessageIdHeaderPattern =
             new(@"X-EmailSaas-MessageId:\s*(MSG-[A-F0-9]+)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
@@ -55,7 +58,6 @@ namespace EmailSaas.Infrastructure.Services
             var context = scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
             var encryptionService = scope.ServiceProvider.GetRequiredService<IEncryptionService>();
 
-            // Pull every ACTIVE provider config across ALL clients that has bounce monitoring turned on
             var configs = await context.EmailProviderConfigs
                 .Where(x => x.BounceMonitoringEnabled
                          && x.Status == 1
@@ -75,7 +77,6 @@ namespace EmailSaas.Infrastructure.Services
                 }
                 catch (Exception ex)
                 {
-                    // One client's broken mailbox config must NOT stop the others from being checked
                     _logger.LogError(ex, "Failed to process bounce mailbox for ClientId={ClientId}", config.ClientId);
                 }
             }
@@ -87,11 +88,47 @@ namespace EmailSaas.Infrastructure.Services
             IMediator mediator,
             CancellationToken stoppingToken)
         {
-            var password = encryptionService.Decrypt(config.ImapPasswordEncrypted!);
+            var tenantId = config.UserName;
+            var azureClientId = config.ApiKeyEncrypted ?? string.Empty;
+            var clientSecret = !string.IsNullOrEmpty(config.PasswordEncrypted)
+                ? encryptionService.Decrypt(config.PasswordEncrypted)
+                : string.Empty;
 
-            using var client = new ImapClient();
-            await client.ConnectAsync(config.ImapHost, config.ImapPort ?? 993, config.ImapUseSsl, stoppingToken);
-            await client.AuthenticateAsync(config.ImapUserName, password, stoppingToken);
+            if (string.IsNullOrEmpty(tenantId) || string.IsNullOrEmpty(azureClientId) || string.IsNullOrEmpty(clientSecret))
+            {
+                _logger.LogWarning("ClientId={ClientId}: missing Graph credentials, cannot acquire IMAP OAuth token.", config.ClientId);
+                return;
+            }
+
+            var credential = new ClientSecretCredential(tenantId, azureClientId, clientSecret);
+
+            var tokenRequestContext = new TokenRequestContext(new[] { "https://outlook.office365.com/.default" });
+            var accessToken = await credential.GetTokenAsync(tokenRequestContext, stoppingToken);
+
+            var tokenParts = accessToken.Token.Split('.');
+            if (tokenParts.Length >= 2)
+            {
+                var payload = tokenParts[1];
+                switch (payload.Length % 4) { case 2: payload += "=="; break; case 3: payload += "="; break; }
+                var decoded = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(payload));
+                _logger.LogWarning("TOKEN CLAIMS: {Claims}", decoded);
+            }
+
+            using var client = new ImapClient(new ProtocolLogger(Console.OpenStandardOutput()));
+
+            await client.ConnectAsync(config.ImapHost, config.ImapPort ?? 993,
+                config.ImapUseSsl ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.StartTls,
+                stoppingToken);
+
+            _logger.LogWarning(
+                "IMAP OAuth login. Username={Username}, Host={Host}, Port={Port}",
+                config.ImapUserName,
+                config.ImapHost,
+                config.ImapPort);
+
+            // With the explicit user/token constructor configuration for Exchange Online:
+            var oauth2 = new SaslMechanismOAuth2(config.ImapUserName, accessToken.Token);
+            await client.AuthenticateAsync(oauth2, stoppingToken);
 
             var inbox = client.Inbox;
             await inbox.OpenAsync(FolderAccess.ReadWrite, stoppingToken);
