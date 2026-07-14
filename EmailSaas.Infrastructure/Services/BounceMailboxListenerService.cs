@@ -13,6 +13,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MimeKit;
 using System.Text.RegularExpressions;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace EmailSaas.Infrastructure.Services
 {
@@ -83,36 +84,47 @@ namespace EmailSaas.Infrastructure.Services
         }
 
         private async Task ProcessSingleMailboxAsync(
-            EmailSaas.Domain.Entities.EmailProviderConfig config,
-            IEncryptionService encryptionService,
-            IMediator mediator,
-            CancellationToken stoppingToken)
+    EmailSaas.Domain.Entities.EmailProviderConfig config,
+    IEncryptionService encryptionService,
+    IMediator mediator,
+    CancellationToken stoppingToken)
         {
+            // Use proper field mappings based on your DB schema:
+            // UserName = TenantId, ApiKeyEncrypted = ClientId, PasswordEncrypted = ClientSecret
             var tenantId = config.UserName;
             var azureClientId = config.ApiKeyEncrypted ?? string.Empty;
             var clientSecret = !string.IsNullOrEmpty(config.PasswordEncrypted)
                 ? encryptionService.Decrypt(config.PasswordEncrypted)
                 : string.Empty;
 
-            if (string.IsNullOrEmpty(tenantId) || string.IsNullOrEmpty(azureClientId) || string.IsNullOrEmpty(clientSecret))
+            // Dynamically retrieve the mailbox address from the IMAP configuration field
+            var targetMailbox = config.ImapUserName ?? config.SenderEmail;
+
+            if (string.IsNullOrEmpty(tenantId) || string.IsNullOrEmpty(azureClientId) ||
+                string.IsNullOrEmpty(clientSecret) || string.IsNullOrEmpty(targetMailbox))
             {
-                _logger.LogWarning("ClientId={ClientId}: missing Graph credentials, cannot acquire IMAP OAuth token.", config.ClientId);
+                _logger.LogWarning("ClientId={ClientId}: missing Graph credentials or target mailbox UPN.", config.ClientId);
                 return;
             }
 
             var credential = new ClientSecretCredential(tenantId, azureClientId, clientSecret);
 
-            var tokenRequestContext = new TokenRequestContext(new[] { "https://outlook.office365.com/.default" });
+            var tokenRequestContext = new TokenRequestContext(
+                new[] { "https://outlook.office365.com/.default" });
+
             var accessToken = await credential.GetTokenAsync(tokenRequestContext, stoppingToken);
 
-            var tokenParts = accessToken.Token.Split('.');
-            if (tokenParts.Length >= 2)
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var jwt = tokenHandler.ReadJwtToken(accessToken.Token);
+
+            _logger.LogInformation("========== TOKEN CLAIMS ==========");
+
+            foreach (var claim in jwt.Claims)
             {
-                var payload = tokenParts[1];
-                switch (payload.Length % 4) { case 2: payload += "=="; break; case 3: payload += "="; break; }
-                var decoded = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(payload));
-                _logger.LogWarning("TOKEN CLAIMS: {Claims}", decoded);
+                _logger.LogInformation("{Type} = {Value}", claim.Type, claim.Value);
             }
+
+            _logger.LogInformation("==================================");
 
             using var client = new ImapClient(new ProtocolLogger(Console.OpenStandardOutput()));
 
@@ -122,12 +134,19 @@ namespace EmailSaas.Infrastructure.Services
 
             _logger.LogWarning(
                 "IMAP OAuth login. Username={Username}, Host={Host}, Port={Port}",
-                config.ImapUserName,
+                targetMailbox,
                 config.ImapHost,
                 config.ImapPort);
 
-            // With the explicit user/token constructor configuration for Exchange Online:
-            var oauth2 = new SaslMechanismOAuth2(config.ImapUserName, accessToken.Token);
+            // Pass the dynamic mailbox UPN and the acquired token to MailKit SASL
+            var mailbox = targetMailbox.Trim();
+
+            _logger.LogInformation("Authenticating mailbox [{Mailbox}]", mailbox);
+
+            var oauth2 = new SaslMechanismOAuth2(
+                mailbox,
+                accessToken.Token.Trim());
+
             await client.AuthenticateAsync(oauth2, stoppingToken);
 
             var inbox = client.Inbox;
