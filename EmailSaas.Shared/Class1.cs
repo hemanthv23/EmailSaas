@@ -1,0 +1,7 @@
+﻿namespace EmailSaas.Shared
+{
+    public class Class1
+    {
+
+    }
+}

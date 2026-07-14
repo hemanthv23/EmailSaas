@@ -1,0 +1,6 @@
+@EmailSaas.API_HostAddress = http://localhost:5065
+
+GET {{EmailSaas.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
