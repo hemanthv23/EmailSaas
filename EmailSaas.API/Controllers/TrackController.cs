@@ -1,4 +1,4 @@
-﻿using EmailSaas.Application.Features.Tracking.Commands.RecordEmailClick;
+using EmailSaas.Application.Features.Tracking.Commands.RecordEmailClick;
 using EmailSaas.Application.Features.Tracking.Commands.RecordEmailOpen;
 using EmailSaas.Application.Features.Tracking.Commands.RecordEmailDelivered;
 using EmailSaas.Application.Features.Tracking.Commands.RecordEmailBounced;
@@ -12,13 +12,15 @@ namespace EmailSaas.API.Controllers
     public class TrackController : ControllerBase
     {
         private readonly IMediator _mediator;
-        // 1x1 transparent GIF — always returned regardless of DB outcome
+        // Valid 1x1 transparent GIF
         private static readonly byte[] TransparentPixel = Convert.FromBase64String(
-            "R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBTAA7");
+            "R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7");
+
         public TrackController(IMediator mediator)
         {
             _mediator = mediator;
         }
+
         [HttpGet("open/{messageId}")]
         public async Task<IActionResult> TrackOpen(string messageId, CancellationToken cancellationToken)
         {
@@ -28,8 +30,13 @@ namespace EmailSaas.API.Controllers
                 IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString(),
                 UserAgent = Request.Headers["User-Agent"].ToString()
             };
+
             await _mediator.Send(command, cancellationToken);
+
             Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0";
+            Response.Headers["Pragma"] = "no-cache";
+            Response.Headers["Expires"] = "0";
+
             return File(TransparentPixel, "image/gif");
         }
         [HttpGet("click/{messageId}")]
