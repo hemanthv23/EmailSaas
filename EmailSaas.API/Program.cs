@@ -1,4 +1,4 @@
-﻿using EmailSaas.Application;
+using EmailSaas.Application;
 using EmailSaas.Infrastructure;
 using EmailSaas.API.Middleware;
 using EmailSaas.API.Swagger;
@@ -87,18 +87,22 @@ app.Use(async (context, next) =>
         var path = context.Request.Path.Value?.ToLower() ?? "";
 
         var publicRoutes = new[]
-{
-    "/api/applications/create-application",
-    "/api/clients/create-client",
-    "/api/email-providers/create-email-provider",
-    "/api/email-templates/create-email-template",
-    "/api/email-logs/fetch-all-email-logs",
-    "/api/send-email/send",
-    "/api/track/deliver/{messageId}",
-};
+        {
+            "/api/applications/create-application",
+            "/api/clients/create-client",
+            "/api/email-providers/create-email-provider",
+            "/api/email-templates/create-email-template",
+            "/api/email-logs/fetch-all-email-logs",
+            "/api/send-email/send"
+        };
 
-        var isPublicRoute = publicRoutes.Any(p =>
-      path.Equals(p, StringComparison.OrdinalIgnoreCase));
+        var publicRoutePrefixes = new[]
+        {
+            "/api/track/"
+        };
+
+        var isPublicRoute = publicRoutes.Any(p => path.Equals(p, StringComparison.OrdinalIgnoreCase)) ||
+                            publicRoutePrefixes.Any(p => path.StartsWith(p, StringComparison.OrdinalIgnoreCase));
 
         // ✅ Admin bypass — only YOU know this header/value
         var isAdminBypass = context.Request.Headers.TryGetValue(
