@@ -1,4 +1,4 @@
-﻿using EmailSaas.Application.Common.Exceptions;
+using EmailSaas.Application.Common.Exceptions;
 using EmailSaas.Application.Common.Interfaces;
 using EmailSaas.Application.Common.Models;
 using EmailSaas.Application.DTOs.EmailProvider;
@@ -58,6 +58,8 @@ namespace EmailSaas.Application.Features.EmailProviders.Commands.UpdateEmailProv
                 entity.PasswordEncrypted = _encryptionService.Encrypt(request.Password);
             if (!string.IsNullOrWhiteSpace(request.ApiKey))
                 entity.ApiKeyEncrypted = request.ApiKey;
+            if (!string.IsNullOrWhiteSpace(request.ApiEndpoint))
+                entity.ApiEndpoint = request.ApiEndpoint;
 
             // ─── New: IMAP bounce mailbox fields — only update if provided ───
             if (!string.IsNullOrWhiteSpace(request.ImapHost))

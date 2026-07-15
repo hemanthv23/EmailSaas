@@ -1,4 +1,4 @@
-﻿namespace EmailSaas.Application.DTOs.EmailProvider;
+namespace EmailSaas.Application.DTOs.EmailProvider;
 
 public class EmailProviderResponseDto
 {

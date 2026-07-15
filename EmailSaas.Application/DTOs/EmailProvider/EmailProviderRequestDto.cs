@@ -1,4 +1,4 @@
-﻿namespace EmailSaas.Application.DTOs.EmailProvider;
+namespace EmailSaas.Application.DTOs.EmailProvider;
 
 public class EmailProviderRequestDto
 {
@@ -12,6 +12,15 @@ public class EmailProviderRequestDto
     public string? UserName { get; set; }
     public string? Password { get; set; }
     public string? ApiKey { get; set; }
+    public string? ApiEndpoint { get; set; }
     public bool IsDefault { get; set; }
     public string CreatedBy { get; set; } = string.Empty;
+
+    // IMAP bounce mailbox fields
+    public string? ImapHost { get; set; }
+    public int? ImapPort { get; set; }
+    public string? ImapUserName { get; set; }
+    public string? ImapPassword { get; set; }
+    public bool? ImapUseSsl { get; set; }
+    public bool? BounceMonitoringEnabled { get; set; }
 }

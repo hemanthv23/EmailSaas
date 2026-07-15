@@ -1,4 +1,4 @@
-﻿using EmailSaas.Application.Common.Models;
+using EmailSaas.Application.Common.Models;
 using EmailSaas.Application.DTOs.EmailProvider;
 using MediatR;
 using System;
@@ -20,6 +20,7 @@ namespace EmailSaas.Application.Features.EmailProviders.Commands.UpdateEmailProv
         public string? UserName { get; set; }
         public string? Password { get; set; }
         public string? ApiKey { get; set; }
+        public string? ApiEndpoint { get; set; }
         public bool IsDefault { get; set; }
         public string UpdatedBy { get; set; } = string.Empty;
 

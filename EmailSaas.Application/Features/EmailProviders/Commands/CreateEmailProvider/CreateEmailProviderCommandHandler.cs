@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using EmailSaas.Application.Common.Interfaces;
 using EmailSaas.Application.Common.Models;
@@ -67,6 +67,17 @@ public class CreateEmailProviderCommandHandler : IRequestHandler<CreateEmailProv
             ApiKeyEncrypted = !string.IsNullOrWhiteSpace(request.ApiKey)
                 ? request.ApiKey
                 : null,
+            ApiEndpoint = request.ApiEndpoint,
+
+            // IMAP Bounce Monitoring Fields
+            ImapHost = request.ImapHost,
+            ImapPort = request.ImapPort,
+            ImapUserName = request.ImapUserName,
+            ImapPasswordEncrypted = !string.IsNullOrWhiteSpace(request.ImapPassword)
+                ? _encryptionService.Encrypt(request.ImapPassword)
+                : null,
+            ImapUseSsl = request.ImapUseSsl ?? true,
+            BounceMonitoringEnabled = request.BounceMonitoringEnabled ?? false,
 
             IsDefault = request.IsDefault,
             Status = (byte)CommonStatus.Active,

@@ -33,7 +33,7 @@ public class EmailSenderService : IEmailSenderService
         try
         {
             // Microsoft Graph
-            if (providerConfig.ProviderName == "MicrosoftGraph")
+            if (providerConfig.ProviderName == EmailSaas.Domain.Constants.EmailProviderConstants.MicrosoftGraph)
             {
                 return await SendViaMicrosoftGraphAsync(
                     providerConfig,
@@ -333,8 +333,12 @@ public class EmailSenderService : IEmailSenderService
 
             var jsonContent = new StringContent(System.Text.Json.JsonSerializer.Serialize(payload), System.Text.Encoding.UTF8, "application/json");
             
-            // Note: Replace with actual generic provider endpoint if needed
-            var response = await httpClient.PostAsync("https://api.email-provider.example.com/v1/send", jsonContent, cancellationToken);
+            // Use the API Endpoint provided in the configuration, fallback to the hardcoded dummy one if not provided
+            var apiEndpoint = !string.IsNullOrWhiteSpace(config.ApiEndpoint) 
+                ? config.ApiEndpoint 
+                : "https://api.email-provider.example.com/v1/send";
+
+            var response = await httpClient.PostAsync(apiEndpoint, jsonContent, cancellationToken);
 
             if (response.IsSuccessStatusCode)
                 return (true, null);

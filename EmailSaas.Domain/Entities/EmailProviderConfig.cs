@@ -1,4 +1,4 @@
-﻿using EmailSaas.Domain.Common;
+using EmailSaas.Domain.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,6 +19,7 @@ namespace EmailSaas.Domain.Entities
         public string? UserName { get; set; }
         public string? PasswordEncrypted { get; set; }
         public string? ApiKeyEncrypted { get; set; }
+        public string? ApiEndpoint { get; set; }
 
         // ─── Bounce mailbox (IMAP) — for SMTP-based providers only ────
         public string? ImapHost { get; set; }
