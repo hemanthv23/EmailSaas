@@ -1,4 +1,4 @@
-﻿using EmailSaas.Application.Common.Models;
+using EmailSaas.Application.Common.Models;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -12,5 +12,6 @@ namespace EmailSaas.Application.Features.Tracking.Commands.RecordEmailDelivered
     {
         public string MessageId { get; set; } = string.Empty;
         public string? ProviderResponse { get; set; }
+        public DateTime? DeliveredAt { get; set; }
     }
 }

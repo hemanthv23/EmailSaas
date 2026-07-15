@@ -361,3 +361,55 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# ─────────────────────────────────────────────────────────────
+# EmailSaaS — Project-specific sensitive files
+# ─────────────────────────────────────────────────────────────
+
+# App settings with real credentials — NEVER commit these
+appsettings.json
+appsettings.*.json
+!appsettings.Example.json
+
+# User secrets (Visual Studio)
+secrets.json
+
+# Environment variable files
+.env
+.env.*
+*.env
+
+# ngrok config (contains auth token)
+ngrok.yml
+ngrok.yaml
+
+# Published output
+publish/
+**/publish/
+
+# EF Core migration snapshots (keep migrations, exclude local snapshots if needed)
+# Uncomment below only if you want to exclude migration bundles:
+# *.efbundle
+
+# SQL Server local DB files
+*.mdf
+*.ldf
+*.ndf
+
+# Certificate and key files
+*.pfx
+*.cer
+*.key
+*.pem
+*.p12
+
+# Rider IDE
+.idea/
+*.sln.iml
+
+# JetBrains
+.idea/
+
+# macOS
+.DS_Store
+Thumbs.db

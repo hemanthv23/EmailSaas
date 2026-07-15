@@ -95,19 +95,32 @@ namespace EmailSaas.API.Controllers
 
                 var eventType = eventProperty.GetString()?.ToLower();
 
-                // Get our internal message ID from custom arguments
-                if (!evt.TryGetProperty("message_id", out var messageIdProp))
+                // Get our internal message ID from custom arguments (try both snake_case and camelCase)
+                if (!evt.TryGetProperty("message_id", out var messageIdProp) && 
+                    !evt.TryGetProperty("messageId", out messageIdProp))
+                {
                     continue;
+                }
 
                 var messageId = messageIdProp.GetString();
                 if (string.IsNullOrEmpty(messageId)) continue;
 
                 if (eventType == "delivered")
                 {
+                    DateTime? deliveredAt = null;
+                    if (evt.TryGetProperty("timestamp", out var timestampProp))
+                    {
+                        if (timestampProp.ValueKind == JsonValueKind.Number && timestampProp.TryGetInt64(out var ts))
+                        {
+                            deliveredAt = DateTimeOffset.FromUnixTimeSeconds(ts).UtcDateTime;
+                        }
+                    }
+
                     var command = new RecordEmailDeliveredCommand
                     {
                         MessageId = messageId,
-                        ProviderResponse = evt.GetRawText()
+                        ProviderResponse = evt.GetRawText(),
+                        DeliveredAt = deliveredAt
                     };
                     await _mediator.Send(command, cancellationToken);
                 }

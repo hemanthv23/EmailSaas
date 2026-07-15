@@ -1,4 +1,4 @@
-﻿using EmailSaas.Application.Common.Interfaces;
+using EmailSaas.Application.Common.Interfaces;
 using EmailSaas.Application.Common.Models;
 using EmailSaas.Domain.Entities;
 using EmailSaas.Domain.Enums;
@@ -33,9 +33,10 @@ namespace EmailSaas.Application.Features.Tracking.Commands.RecordEmailDelivered
                 return Result<bool>.Failure($"EmailLog with MessageId '{request.MessageId}' not found.");
 
             var now = DateTime.UtcNow;
+            var deliveredAt = request.DeliveredAt ?? now;
 
             emailLog.Status = (byte)EmailSendStatus.Delivered;
-            emailLog.DeliveredAt = now;
+            emailLog.DeliveredAt = deliveredAt;
             emailLog.WebhookStatus = EmailEventType.Delivered.ToString();
             emailLog.UpdatedDate = now;
 
@@ -46,7 +47,7 @@ namespace EmailSaas.Application.Features.Tracking.Commands.RecordEmailDelivered
                 EmailLogId = emailLog.Id,
                 EventType = EmailEventType.Delivered.ToString(),
                 EventData = JsonSerializer.Serialize(eventData),
-                OccurredAt = now,
+                OccurredAt = deliveredAt,
                 CreatedBy = "System",
                 CreatedDate = now
             });
