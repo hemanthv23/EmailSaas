@@ -1,4 +1,4 @@
-﻿using Azure.Core;
+using Azure.Core;
 using Azure.Identity;
 using EmailSaas.Application.Common.Interfaces;
 using EmailSaas.Application.Features.Tracking.Commands.RecordEmailBounced;
@@ -168,6 +168,7 @@ namespace EmailSaas.Infrastructure.Services
 
                 if (!IsBounceMessage(message))
                 {
+                    _logger.LogInformation("ClientId={ClientId}: Message {Uid} skipped. Not identified as a bounce message. Subject: '{Subject}'", config.ClientId, uid, message.Subject);
                     await inbox.AddFlagsAsync(uid, MessageFlags.Seen, true, stoppingToken);
                     continue;
                 }
@@ -185,6 +186,10 @@ namespace EmailSaas.Infrastructure.Services
 
                     if (!result.Succeeded)
                         _logger.LogWarning("Bounce mail matched no EmailLog: MessageId={MessageId}", originalMessageId);
+                }
+                else
+                {
+                    _logger.LogWarning("ClientId={ClientId}: Message {Uid} identified as bounce, but could not extract X-EmailSaas-MessageId.", config.ClientId, uid);
                 }
 
                 await inbox.AddFlagsAsync(uid, MessageFlags.Seen, true, stoppingToken);

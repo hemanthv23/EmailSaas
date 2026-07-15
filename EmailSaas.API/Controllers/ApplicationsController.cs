@@ -29,7 +29,7 @@ public class ApplicationsController : ControllerBase
     [HttpPost("create-application")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    //[Tags("Public")]
+    [Tags("Public")]
     public async Task<IActionResult> Create([FromBody] CreateApplicationCommand command)
     {
         var result = await _mediator.Send(command);

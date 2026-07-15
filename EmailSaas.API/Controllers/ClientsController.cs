@@ -28,7 +28,7 @@ public class ClientsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    //[Tags("Public")]
+    [Tags("Public")]
     public async Task<IActionResult> Create([FromBody] CreateClientCommand command)
     {
         var result = await _mediator.Send(command);

@@ -26,7 +26,7 @@ public class EmailLogsController : ControllerBase
     [HttpGet("fetch-all-email-logs")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    //[Tags("Public")]
+    [Tags("Public")]
     public async Task<IActionResult> GetAll()
     {
         var applicationId = (int)HttpContext.Items["ApplicationId"]!;
