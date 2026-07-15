@@ -1,8 +1,8 @@
-﻿# EmailSaaS
+# EmailSaaS
 
 **A multi-tenant Email Notification SaaS platform built with .NET 8**
 
-EmailSaaS is a centrally hosted email service that allows multiple applications (tenants) to store their own email templates, connect their own email-sending accounts, and send tracked, dynamic emails through a single unified API — similar in concept to SendGrid or Mailchimp, but built entirely in-house.
+EmailSaaS is a centrally hosted email service that allows multiple applications (tenants) to store their own email templates, connect their own email-sending accounts, and send tracked, dynamic emails through a single unified API — similar in concept to other external SaaS providers, but built entirely in-house.
 
 ---
 

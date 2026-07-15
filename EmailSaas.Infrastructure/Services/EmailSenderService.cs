@@ -7,11 +7,7 @@ using Microsoft.Graph;
 using Microsoft.Graph.Models;
 using MimeKit;
 using MimeKit.Utils;
-using SendGrid;
 using GraphEmailAddress = Microsoft.Graph.Models.EmailAddress;
-using ApiEmailAddress = SendGrid.Helpers.Mail.EmailAddress;
-using ApiMailHelper = SendGrid.Helpers.Mail.MailHelper;
-using ApiMailClient = SendGrid.SendGridClient;
 
 namespace EmailSaas.Infrastructure.Services;
 
@@ -302,7 +298,7 @@ public class EmailSenderService : IEmailSenderService
 
     #region SendViaApiProviderAsync
     // ─── Generic API-key based provider ──
-    // (works with any REST email API that uses an API key)
+    // (works with a generic REST email API that uses an API key)
     private async Task<(bool Success, string? ErrorMessage)> SendViaApiProviderAsync(
         EmailProviderConfig config,
         string toEmail,
@@ -322,38 +318,28 @@ public class EmailSenderService : IEmailSenderService
             if (string.IsNullOrEmpty(decryptedApiKey))
                 return (false, "API key is missing or invalid.");
 
-            var client = new ApiMailClient(decryptedApiKey);
+            using var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", decryptedApiKey);
 
-            var from = new ApiEmailAddress(config.SenderEmail, config.SenderName);
-            var to = new ApiEmailAddress(toEmail);
-
-            var msg = ApiMailHelper.CreateSingleEmail(
-                from, to, subject,
-                HtmlToPlainText(htmlBody),
-                htmlBody);
-
-            if (!string.IsNullOrEmpty(config.ReplyToEmail))
-                msg.SetReplyTo(new ApiEmailAddress(config.ReplyToEmail));
-
-            if (!string.IsNullOrEmpty(ccEmail))
-                msg.AddCc(new ApiEmailAddress(ccEmail));
-
-            if (!string.IsNullOrEmpty(bccEmail))
-                msg.AddBcc(new ApiEmailAddress(bccEmail));
-
-            // ─── Custom headers (e.g. X-EmailSaas-MessageId for bounce matching) ───
-            if (customHeaders != null)
+            var payload = new
             {
-                foreach (var header in customHeaders)
-                    msg.AddHeader(header.Key, header.Value);
-            }
+                from = new { email = config.SenderEmail, name = config.SenderName },
+                to = new[] { new { email = toEmail } },
+                subject = subject,
+                html = htmlBody,
+                text = HtmlToPlainText(htmlBody),
+                headers = customHeaders ?? new Dictionary<string, string>()
+            };
 
-            var response = await client.SendEmailAsync(msg, cancellationToken);
+            var jsonContent = new StringContent(System.Text.Json.JsonSerializer.Serialize(payload), System.Text.Encoding.UTF8, "application/json");
+            
+            // Note: Replace with actual generic provider endpoint if needed
+            var response = await httpClient.PostAsync("https://api.email-provider.example.com/v1/send", jsonContent, cancellationToken);
 
             if (response.IsSuccessStatusCode)
                 return (true, null);
 
-            var errorBody = await response.Body.ReadAsStringAsync(cancellationToken);
+            var errorBody = await response.Content.ReadAsStringAsync(cancellationToken);
             return (false, $"Provider error: {response.StatusCode} - {errorBody}");
         }
         catch (Exception ex)

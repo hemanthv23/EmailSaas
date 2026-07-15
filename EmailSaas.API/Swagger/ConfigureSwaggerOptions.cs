@@ -1,4 +1,4 @@
-﻿using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace EmailSaas.API.Swagger;
@@ -19,7 +19,7 @@ public static class SwaggerConfiguration
                 ### How to use:
                 1. Register your application → get your **ApiKey**
                 2. Create a client under your application
-                3. Configure your email provider (SMTP/SendGrid)
+                3. Configure your email provider (SMTP/API)
                 4. Create email templates with placeholders
                 5. Call **Send Email** API to send emails
                 

@@ -1,4 +1,4 @@
-﻿using EmailSaas.Application.Features.EmailProviders.Commands.CreateEmailProvider;
+using EmailSaas.Application.Features.EmailProviders.Commands.CreateEmailProvider;
 using EmailSaas.Application.Features.EmailProviders.Commands.UpdateEmailProvider;
 using EmailSaas.Application.Features.EmailProviders.Queries.GetAllEmailProviders;
 using EmailSaas.Application.Features.EmailProviders.Queries.GetEmailProviderById;
@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace EmailSaas.API.Controllers;
 
 /// <summary>
-/// Manages Email Provider Configurations (SMTP/SendGrid/SES)
+/// Manages Email Provider Configurations (SMTP/API)
 /// </summary>
 [ApiController]
 [Route("api/email-providers")]

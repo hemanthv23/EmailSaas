@@ -1,4 +1,4 @@
-﻿using EmailSaas.Application.Common.Interfaces;
+using EmailSaas.Application.Common.Interfaces;
 using EmailSaas.Application.Common.Models;
 using EmailSaas.Application.DTOs.SendEmail;
 using EmailSaas.Domain.Entities;
@@ -130,17 +130,28 @@ public class SendEmailCommandHandler : IRequestHandler<SendEmailCommand, Result<
             customHeaders,
             cancellationToken);
 
-        // Step 10: Update EmailLog with send result
-        // deliveredAt stays null until a REAL delivery confirmation event is received
-        // (bounce mailbox listener, or a future provider callback). WebhookStatus similarly
-        // stays null here — it only gets set by an actual tracked event (open, click, bounce).
-        emailLog.Status = success
-            ? (byte)EmailSendStatus.Sent
-            : (byte)EmailSendStatus.Failed;
-        emailLog.ErrorMessage = errorMessage;
-        emailLog.SentDate = success ? DateTime.UtcNow : null;
+        // Step 10: Update EmailLog with send result.
+        // SentDate = when email left our server.
+        // DeliveredAt = set later when tracking pixel fires (proof email reached inbox).
+        var now = DateTime.UtcNow;
+
+        if (success)
+        {
+            emailLog.Status = (byte)EmailSendStatus.Sent;
+            emailLog.WebhookStatus = EmailEventType.Sent.ToString();
+            emailLog.SentDate = now;
+            // DeliveredAt is NOT set here — it gets set automatically
+            // when the recipient opens the email (tracking pixel fires).
+        }
+        else
+        {
+            emailLog.Status = (byte)EmailSendStatus.Failed;
+            emailLog.WebhookStatus = EmailEventType.Failed.ToString();
+            emailLog.ErrorMessage = errorMessage;
+        }
+
         emailLog.UpdatedBy = request.CreatedBy;
-        emailLog.UpdatedDate = DateTime.UtcNow;
+        emailLog.UpdatedDate = now;
 
         // Step 11: Record raw event for audit trail (Sent or Failed)
         var eventType = success ? EmailEventType.Sent : EmailEventType.Failed;
@@ -150,15 +161,14 @@ public class SendEmailCommandHandler : IRequestHandler<SendEmailCommand, Result<
             EmailLogId = emailLog.Id,
             EventType = eventType.ToString(),
             EventData = System.Text.Json.JsonSerializer.Serialize(new { errorMessage }),
-            OccurredAt = DateTime.UtcNow,
+            OccurredAt = now,
             CreatedBy = "System",
-            CreatedDate = DateTime.UtcNow
+            CreatedDate = now
         });
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        // Step 12: Queue outbound webhook — only for Failed (clients subscribe to Failed, not Sent,
-        // per WebhookEventType enum — Sent is an internal-only lifecycle event)
+        // Step 12: Queue outbound webhook notification to subscribers
         if (!success)
         {
             await _webhookDispatcher.QueueWebhookAsync(

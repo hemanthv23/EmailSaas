@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 
 namespace EmailSaas.Application.Features.EmailProviders.Commands.CreateEmailProvider;
 
@@ -68,7 +68,7 @@ public class CreateEmailProviderCommandValidator : AbstractValidator<CreateEmail
                         .WithMessage("Password is required when SmtpHost is provided.");
                 });
 
-        // ─── API-key based provider rules (SendGrid/SES etc.) ──
+        // ─── API-key based provider rules ──
         When(x => x.ProviderName != "MicrosoftGraph"
                 && string.IsNullOrEmpty(x.SmtpHost), () =>
                 {

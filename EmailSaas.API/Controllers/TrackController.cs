@@ -5,6 +5,7 @@ using EmailSaas.Application.Features.Tracking.Commands.RecordEmailBounced;
 using EmailSaas.Application.Features.Tracking.Commands.RecordEmailFailed;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 namespace EmailSaas.API.Controllers
 {
     [ApiController]
@@ -44,17 +45,18 @@ namespace EmailSaas.API.Controllers
         {
             if (string.IsNullOrWhiteSpace(url))
                 return BadRequest("Missing target URL.");
-            var decodedUrl = Uri.UnescapeDataString(url);
+            // Note: ASP.NET Core automatically URL-decodes the [FromQuery] parameter.
+            // Using Uri.UnescapeDataString again can break URLs that legitimately contain encoded characters (like spaces encoded as %20).
             var command = new RecordEmailClickCommand
             {
                 MessageId = messageId,
-                OriginalUrl = decodedUrl,
+                OriginalUrl = url,
                 IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString(),
                 UserAgent = Request.Headers["User-Agent"].ToString()
             };
             var result = await _mediator.Send(command, cancellationToken);
             // ✅ Fixed — Succeeded, not IsSuccess
-            var redirectUrl = result.Succeeded ? result.Data : decodedUrl;
+            var redirectUrl = result.Succeeded ? result.Data : url;
             return Redirect(redirectUrl!);
         }
 
@@ -80,6 +82,48 @@ namespace EmailSaas.API.Controllers
         {
             var result = await _mediator.Send(command, cancellationToken);
             return result.Succeeded ? Ok(result) : BadRequest(result);
+        }
+
+        // ─── Automatic Provider Webhook Receiver ───
+        [HttpPost("events")]
+        public async Task<IActionResult> TrackProviderWebhook([FromBody] JsonElement[] events, CancellationToken cancellationToken)
+        {
+            foreach (var evt in events)
+            {
+                if (!evt.TryGetProperty("event", out var eventProperty))
+                    continue;
+
+                var eventType = eventProperty.GetString()?.ToLower();
+
+                // Get our internal message ID from custom arguments
+                if (!evt.TryGetProperty("message_id", out var messageIdProp))
+                    continue;
+
+                var messageId = messageIdProp.GetString();
+                if (string.IsNullOrEmpty(messageId)) continue;
+
+                if (eventType == "delivered")
+                {
+                    var command = new RecordEmailDeliveredCommand
+                    {
+                        MessageId = messageId,
+                        ProviderResponse = evt.GetRawText()
+                    };
+                    await _mediator.Send(command, cancellationToken);
+                }
+                else if (eventType == "bounce" || eventType == "dropped")
+                {
+                    var reason = (evt.TryGetProperty("reason", out var r) ? r.GetString() : null) ?? "Bounced/Dropped by Provider";
+                    var command = new RecordEmailBouncedCommand
+                    {
+                        MessageId = messageId,
+                        BounceReason = reason
+                    };
+                    await _mediator.Send(command, cancellationToken);
+                }
+            }
+
+            return Ok();
         }
     }
 }
