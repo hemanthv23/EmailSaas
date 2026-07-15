@@ -1,4 +1,4 @@
-﻿using EmailSaas.Application.Common.Interfaces;
+using EmailSaas.Application.Common.Interfaces;
 using EmailSaas.Application.Common.Models;
 using EmailSaas.Domain.Entities;
 using EmailSaas.Domain.Enums;
@@ -28,6 +28,29 @@ namespace EmailSaas.Application.Features.Tracking.Commands.RecordEmailClick
                 return Result<string>.Success(request.OriginalUrl);
 
             var now = DateTime.UtcNow;
+
+            // --- NEW: Implicit Open Tracking ---
+            // If they clicked a link, they definitely opened the email.
+            // If the image was blocked, we can use this click to record the Open event too!
+            if (emailLog.OpenedAt == null)
+            {
+                emailLog.OpenedAt = now;
+                emailLog.LastOpenedAt = now;
+                emailLog.OpenCount += 1;
+                emailLog.DeliveredAt ??= now;
+                emailLog.Status = (byte)EmailSendStatus.Delivered;
+
+                // Fire an "Opened" event to the Events table
+                _context.EmailEvents.Add(new EmailEvent
+                {
+                    EmailLogId = emailLog.Id,
+                    EventType = EmailEventType.Opened.ToString(),
+                    EventData = JsonSerializer.Serialize(new { request.IpAddress, request.UserAgent, OpenCount = emailLog.OpenCount, Note = "Inferred from Click" }),
+                    OccurredAt = now,
+                    CreatedBy = "System",
+                    CreatedDate = now
+                });
+            }
 
             if (emailLog.ClickedAt == null)
                 emailLog.ClickedAt = now;

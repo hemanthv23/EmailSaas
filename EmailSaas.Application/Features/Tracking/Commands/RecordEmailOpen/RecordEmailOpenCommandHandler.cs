@@ -36,11 +36,11 @@ namespace EmailSaas.Application.Features.Tracking.Commands.RecordEmailOpen
                 // First open = proof email reached the inbox = mark as Delivered
                 emailLog.DeliveredAt = now;
                 emailLog.Status = (byte)EmailSendStatus.Delivered;
-                emailLog.WebhookStatus = EmailEventType.Delivered.ToString();
             }
 
             emailLog.LastOpenedAt = now;
             emailLog.OpenCount += 1;
+            emailLog.WebhookStatus = EmailEventType.Opened.ToString();
             emailLog.UpdatedDate = now;
 
             var eventData = new
