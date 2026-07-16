@@ -32,10 +32,13 @@ namespace EmailSaas.Application.Features.Tracking.Commands.RecordEmailOpen
             if (emailLog.OpenedAt == null)
             {
                 emailLog.OpenedAt = now;
-
-                // First open = proof email reached the inbox = mark as Delivered
-                emailLog.DeliveredAt = now;
-                emailLog.Status = (byte)EmailSendStatus.Delivered;
+                
+                // We keep the status update just in case we missed the Delivery webhook, 
+                // but we DO NOT overwrite DeliveredAt with the Open time.
+                if (emailLog.Status != (byte)EmailSendStatus.Delivered)
+                {
+                    emailLog.Status = (byte)EmailSendStatus.Delivered;
+                }
             }
 
             emailLog.LastOpenedAt = now;
