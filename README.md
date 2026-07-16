@@ -246,7 +246,7 @@ Content-Type: application/json
   "applicationId": 1,
   "clientId": 101,
   "templateCode": "WELCOME_EMAIL",
-  "toEmail": "customer@example.com",
+  "toEmail": "hemanthkv23@outlook.com",
   "ccEmail": "sales@example.com",
   "bccEmail": "",
   "parameters": {
