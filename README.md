@@ -68,67 +68,91 @@ EmailSaas.API             → Controllers, middleware, Swagger, API entry point
 
 ```
 EmailSaas/
-├── EmailSaas.Domain/
+│
+├── EmailSaas.Domain/                          → Core business entities, zero external dependencies
+│   ├── Common/
+│   │   └── AuditableEntity.cs                 → Base class with CreatedBy, CreatedDate, UpdatedBy, UpdatedDate
+│   ├── Constants/
+│   │   └── EmailProviderConstants.cs          → Provider name constants (SMTP, Graph, etc.)
 │   ├── Entities/
-│   │   ├── ApplicationMaster.cs       → Top-level tenant entity
-│   │   ├── ClientMaster.cs            → Client under an Application
-│   │   ├── EmailProviderConfig.cs     → Encrypted sending credentials per client
-│   │   ├── EmailTemplateMaster.cs     → HTML templates with placeholders
-│   │   ├── EmailLog.cs                → Full audit log per sent email
-│   │   ├── EmailEvent.cs              → Individual tracking events (open/click/bounce etc.)
-│   │   ├── EmailLinkClick.cs          → Per-link click detail record
-│   │   ├── WebhookSubscription.cs     → Client webhook endpoint registrations
-│   │   └── WebhookDeliveryLog.cs      → Delivery attempts + retry log per webhook
+│   │   ├── ApplicationMaster.cs               → Top-level tenant entity
+│   │   ├── ClientMaster.cs                    → Client under an Application
+│   │   ├── EmailProviderConfig.cs             → Encrypted sending + IMAP credentials per client
+│   │   ├── EmailTemplateMaster.cs             → HTML templates with {{Placeholder}} variables
+│   │   ├── EmailLog.cs                        → Full audit log per sent email
+│   │   ├── EmailEvent.cs                      → Individual tracking events (open/click/bounce etc.)
+│   │   ├── EmailLinkClick.cs                  → Per-link click detail record
+│   │   ├── WebhookSubscription.cs             → Client webhook endpoint registrations
+│   │   └── WebhookDeliveryLog.cs              → Webhook delivery attempts + retry log
 │   └── Enums/
-│       ├── EmailSendStatus.cs         → Pending, Sent, Delivered, Opened, Clicked, Bounced, Failed
-│       ├── EmailEventType.cs          → Delivered, Opened, Clicked, Bounced, Failed
-│       ├── WebhookEventType.cs        → Events that trigger webhook dispatch
-│       └── CommonStatus.cs            → Active / Inactive
+│       ├── EmailSendStatus.cs                 → Pending, Sent, Delivered, Opened, Clicked, Bounced, Failed
+│       ├── EmailEventType.cs                  → Delivered, Opened, Clicked, Bounced, Failed, Sent
+│       ├── WebhookEventType.cs                → Events that trigger webhook dispatch
+│       └── CommonStatus.cs                    → Active / Inactive
 │
-├── EmailSaas.Application/
-│   ├── Common/                        → Result<T>, interfaces (IApplicationDbContext, IWebhookDispatcher, etc.)
-│   ├── DTOs/                          → Response DTOs per feature
+├── EmailSaas.Application/                     → Business logic — CQRS, Handlers, Validators, Interfaces
+│   ├── Common/
+│   │   ├── Behaviors/                         → MediatR pipeline behaviors (e.g., Validation behavior)
+│   │   ├── Exceptions/                        → Custom exception types
+│   │   ├── Interfaces/                        → IApplicationDbContext, IEmailSenderService,
+│   │   │                                          IEmailTrackingService, IEncryptionService,
+│   │   │                                          IWebhookDispatcher
+│   │   └── Models/                            → Result<T> wrapper
+│   ├── DTOs/                                  → Response DTOs per feature area
 │   └── Features/
-│       ├── Applications/              → CRUD for ApplicationMaster
-│       ├── Clients/                   → CRUD for ClientMaster
-│       ├── EmailProviders/            → CRUD + credential encryption for EmailProviderConfig
-│       ├── EmailTemplates/            → CRUD for EmailTemplateMaster
-│       ├── SendEmail/                 → Core send-email command (template render + provider dispatch)
-│       ├── EmailLogs/                 → Query email logs by ID or list
+│       ├── Applications/                      → Create / Get ApplicationMaster
+│       ├── Clients/                           → Create / Get ClientMaster
+│       ├── EmailProviders/                    → Create / Get EmailProviderConfig (with encryption)
+│       ├── EmailTemplates/                    → Create / Get EmailTemplateMaster
+│       ├── EmailLogs/                         → Fetch all logs / fetch by ID
+│       ├── SendEmail/                         → Core send command (render template → inject tracking → dispatch)
 │       ├── Tracking/
-│       │   ├── RecordEmailDelivered/  → Mark delivered, set DeliveredAt, fire webhook
-│       │   ├── RecordEmailOpen/       → Record open pixel hit, set OpenedAt / LastOpenedAt / OpenCount
-│       │   ├── RecordEmailClick/      → Record link click, set ClickedAt / LastClickedAt / ClickCount
-│       │   ├── RecordEmailBounced/    → Record bounce, set BouncedAt / BounceReason
-│       │   └── RecordEmailFailed/     → Record send failure, set ErrorMessage
-│       └── Webhooks/                  → Create / list webhook subscriptions
+│       │   └── Commands/
+│       │       ├── RecordEmailDelivered/      → Set DeliveredAt, fire Delivered webhook
+│       │       ├── RecordEmailOpen/           → Set OpenedAt / LastOpenedAt / OpenCount, fire Opened webhook
+│       │       ├── RecordEmailClick/          → Set ClickedAt / LastClickedAt / ClickCount, fire Clicked webhook
+│       │       ├── RecordEmailBounced/        → Set BouncedAt / BounceReason, fire Bounced webhook
+│       │       └── RecordEmailFailed/         → Set ErrorMessage / Status = Failed, fire Failed webhook
+│       └── Webhooks/                          → Create / list WebhookSubscriptions
 │
-├── EmailSaas.Infrastructure/
-│   ├── Persistence/                   → EF Core DbContext + entity configurations + migrations
+├── EmailSaas.Infrastructure/                  → EF Core, email sending, encryption, background services
+│   ├── Persistence/
+│   │   ├── AppDbContext.cs                    → EF Core DbContext
+│   │   └── Configurations/                   → Entity type configurations (Fluent API per entity)
 │   └── Services/
-│       ├── EmailSenderService.cs      → Routes to SMTP or Graph based on provider config
-│       ├── EmailTrackingService.cs    → Injects pixel + rewrites links for tracking
-│       ├── AesEncryptionService.cs    → Encrypts/decrypts provider credentials
-│       ├── WebhookDispatcher.cs       → Queues webhook events for dispatch
-│       ├── WebhookDispatchBackgroundService.cs → Background retry loop for webhook delivery
-│       ├── BounceMailboxListenerService.cs     → IMAP listener for bounce detection
-│       └── WebhookSettings.cs         → Webhook configuration model
+│       ├── EmailSenderService.cs              → Routes to SMTP (MailKit) or Graph API based on provider
+│       ├── EmailTrackingService.cs            → Injects open pixel + rewrites links for click tracking
+│       ├── AesEncryptionService.cs            → AES-256 encrypt/decrypt for credentials at rest
+│       ├── WebhookDispatcher.cs               → Queues webhook events for background dispatch
+│       ├── WebhookDispatchBackgroundService.cs→ Background retry loop for webhook delivery
+│       ├── BounceMailboxListenerService.cs    → IMAP listener — supports OAuth2 (Graph) + Basic Auth (SMTP)
+│       └── WebhookSettings.cs                 → Webhook configuration model
 │
-└── EmailSaas.API/
-    ├── Controllers/
-    │   ├── ApplicationsController.cs      → Manage Applications
-    │   ├── ClientsController.cs           → Manage Clients
-    │   ├── EmailProvidersController.cs    → Manage provider configs
-    │   ├── EmailTemplatesController.cs    → Manage templates
-    │   ├── SendEmailController.cs         → Core send-email endpoint
-    │   ├── EmailLogsController.cs         → Query sent email logs
-    │   ├── TrackController.cs             → Open pixel / click redirect / delivered / bounced / provider webhook receiver
-    │   ├── WebhookSubscriptionsController.cs → Manage webhook subscriptions
-    │   └── TestReceiverController.cs      → Development-only webhook test receiver
-    ├── Middleware/
-    │   ├── ApiKeyMiddleware.cs            → Per-request tenant authentication
-    │   └── WebhookSignatureValidationMiddleware.cs → Validates signed webhook payloads
-    └── Program.cs                         → App bootstrap, DI, middleware pipeline
+├── EmailSaas.API/                             → HTTP entry point, middleware, controllers
+│   ├── Controllers/
+│   │   ├── ApplicationsController.cs          → Manage Applications
+│   │   ├── ClientsController.cs               → Manage Clients
+│   │   ├── EmailProvidersController.cs        → Manage provider configs
+│   │   ├── EmailTemplatesController.cs        → Manage templates
+│   │   ├── SendEmailController.cs             → Core send-email endpoint
+│   │   ├── EmailLogsController.cs             → Query sent email logs
+│   │   ├── TrackController.cs                 → Open pixel / click redirect / delivered / bounced / events
+│   │   ├── WebhookSubscriptionsController.cs  → Manage webhook subscriptions
+│   │   └── TestReceiverController.cs          → Dev-only webhook test receiver
+│   ├── Middleware/
+│   │   ├── ApiKeyMiddleware.cs                → Per-request tenant authentication via X-Api-Key header
+│   │   ├── ExceptionHandlingMiddleware.cs     → Global exception handler, hides stack traces
+│   │   ├── WebhookSignatureValidationMiddleware.cs → HMAC signature validation for inbound webhooks
+│   │   ├── ErrorResponse.cs                   → Standard error response model
+│   │   └── MiddlewareExtensions.cs            → Extension methods to register all middleware
+│   ├── Swagger/
+│   │   └── ConfigureSwaggerOptions.cs         → Swagger API key header + documentation config
+│   ├── appsettings.json                       → Production configuration (hosted DB, tracking base URL)
+│   ├── appsettings.Development.json           → Local development configuration (local DB, localhost URL)
+│   ├── appsettings.Example.json               → Safe template to commit — no real secrets
+│   └── Program.cs                             → App bootstrap, DI registration, middleware pipeline
+│
+└── EmailSaas.Shared/                          → Shared utilities (reserved for cross-layer use)
 ```
 
 ---
