@@ -29,12 +29,14 @@ namespace EmailSaas.Application.Features.Tracking.Commands.RecordEmailOpen
 
             var now = DateTime.UtcNow;
 
+            // Implicit Delivery Tracking:
+            // If the email is opened, it must have been delivered.
+            emailLog.DeliveredAt ??= now;
+
             if (emailLog.OpenedAt == null)
             {
                 emailLog.OpenedAt = now;
                 
-                // We keep the status update just in case we missed the Delivery webhook, 
-                // but we DO NOT overwrite DeliveredAt with the Open time.
                 if (emailLog.Status != (byte)EmailSendStatus.Delivered)
                 {
                     emailLog.Status = (byte)EmailSendStatus.Delivered;

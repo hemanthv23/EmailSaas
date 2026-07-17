@@ -1,6 +1,6 @@
 # EmailSaaS
 
-**A multi-tenant Email Notification SaaS platform built with .NET 8**
+**A multi-tenant Email Notification SaaS platform built with .NET 10**
 
 EmailSaaS is a centrally hosted email service that allows multiple applications (tenants) to store their own email templates, connect their own email-sending accounts, and send tracked, dynamic emails through a single unified API — similar in concept to commercial transactional email platforms, but built entirely in-house with full control.
 
@@ -50,7 +50,7 @@ EmailSaas.API             → Controllers, middleware, Swagger, API entry point
 
 | Layer | Technology |
 |---|---|
-| Framework | .NET 8 (LTS) |
+| Framework | .NET 10 (LTS) |
 | ORM | Entity Framework Core 8 — SQL Server, Code-First Migrations |
 | Messaging | MediatR (CQRS pattern) |
 | Validation | FluentValidation |
@@ -287,7 +287,7 @@ dotnet test
 
 ### Prerequisites
 
-- .NET 8 SDK
+- .NET 10 SDK
 - SQL Server (any edition)
 - A sending account — Gmail / Zoho / Office 365 / any SMTP
 
