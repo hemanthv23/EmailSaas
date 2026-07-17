@@ -1,4 +1,4 @@
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace EmailSaas.API.Swagger;
@@ -34,7 +34,7 @@ public static class SwaggerConfiguration
             }
         });
 
-        // API Key Security Definition test commit message after adding security definition
+        // API Key Security Definition
         options.AddSecurityDefinition("ApiKey", new OpenApiSecurityScheme
         {
             Description = "Enter your API Key. Example: ESAAS-XXXXXXXX",
@@ -44,18 +44,12 @@ public static class SwaggerConfiguration
             Scheme = "ApiKeyScheme"
         });
 
-        options.AddSecurityRequirement(new OpenApiSecurityRequirement
+        // Security requirement — v10 uses a delegate that receives the built document
+        options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
         {
             {
-                new OpenApiSecurityScheme
-                {
-                    Reference = new OpenApiReference
-                    {
-                        Type = ReferenceType.SecurityScheme,
-                        Id = "ApiKey"
-                    }
-                },
-                Array.Empty<string>()
+                new OpenApiSecuritySchemeReference("ApiKey", document),
+                new List<string>()
             }
         });
 

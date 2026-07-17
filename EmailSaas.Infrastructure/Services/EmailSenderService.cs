@@ -143,6 +143,8 @@ public class EmailSenderService : IEmailSenderService
             var message = new Message
             {
                 Subject = subject,
+                IsDeliveryReceiptRequested = true,
+                IsReadReceiptRequested = true,
                 Body = new ItemBody
                 {
                     ContentType = BodyType.Html,
@@ -256,6 +258,10 @@ public class EmailSenderService : IEmailSenderService
             message.Headers.Add("List-Unsubscribe-Post",
                 "List-Unsubscribe=One-Click");
 
+            // Delivery Status Notification (DSN) and Read Receipt headers
+            message.Headers.Add("Disposition-Notification-To", config.SenderEmail);
+            message.Headers.Add("Return-Receipt-To", config.SenderEmail);
+
             // ─── Custom headers (e.g. X-EmailSaas-MessageId for bounce matching) ───
             if (customHeaders != null)
             {
@@ -321,6 +327,10 @@ public class EmailSenderService : IEmailSenderService
             using var httpClient = new HttpClient();
             httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", decryptedApiKey);
 
+            var headersWithDsn = customHeaders ?? new Dictionary<string, string>();
+            headersWithDsn["Disposition-Notification-To"] = config.SenderEmail;
+            headersWithDsn["Return-Receipt-To"] = config.SenderEmail;
+
             var payload = new
             {
                 from = new { email = config.SenderEmail, name = config.SenderName },
@@ -328,7 +338,7 @@ public class EmailSenderService : IEmailSenderService
                 subject = subject,
                 html = htmlBody,
                 text = HtmlToPlainText(htmlBody),
-                headers = customHeaders ?? new Dictionary<string, string>()
+                headers = headersWithDsn
             };
 
             var jsonContent = new StringContent(System.Text.Json.JsonSerializer.Serialize(payload), System.Text.Encoding.UTF8, "application/json");
