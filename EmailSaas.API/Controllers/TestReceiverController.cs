@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EmailSaas.API.Controllers
@@ -14,11 +14,7 @@ namespace EmailSaas.API.Controllers
             using var reader = new StreamReader(Request.Body);
             var body = await reader.ReadToEndAsync();
 
-            Console.WriteLine("========== WEBHOOK RECEIVED ==========");
-            Console.WriteLine($"Signature: {Request.Headers["X-Webhook-Signature"]}");
-            Console.WriteLine($"Event: {Request.Headers["X-Webhook-Event"]}");
-            Console.WriteLine($"Body: {body}");
-            Console.WriteLine("=======================================");
+
 
             return Ok(new { received = true });
         }

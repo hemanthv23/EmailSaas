@@ -117,22 +117,7 @@ public class EmailSenderService : IEmailSenderService
                     "Microsoft Graph requires TenantId (UserName), AzureClientId (ApiKey) and ClientSecret (Password).");
             }
 
-            Console.WriteLine("========== Microsoft Graph Credentials ==========");
 
-            Console.WriteLine($"Tenant ID      : {tenantId}");
-            Console.WriteLine($"Client ID      : {azureClientId}");
-            Console.WriteLine($"Client Secret Value  : {clientSecret}");
-            Console.WriteLine($"Secret Length  : {clientSecret.Length}");
-
-            Console.WriteLine();
-
-            Console.WriteLine("========== Email Configuration ==========");
-
-            Console.WriteLine($"Sender Name    : {config.SenderName}");
-            Console.WriteLine($"Sender Email   : {config.SenderEmail}");
-            Console.WriteLine($"ReplyTo Email  : {config.ReplyToEmail}");
-
-            Console.WriteLine("=========================================");
 
             // Get OAuth2 token using Client Credentials flow
             var credential = new ClientSecretCredential(
