@@ -33,18 +33,7 @@ EmailSaaS is **not an email provider itself** — it doesn't own or operate mail
 
 ## 🏗️ Architecture
 
-Built using **Clean Architecture** with **CQRS** via **MediatR**.
-
-```
-EmailSaas.Domain          → Core entities and enums. Zero external dependencies.
-EmailSaas.Application     → Business logic — Commands, Queries, Handlers,
-                             DTOs, Validators, Interfaces
-EmailSaas.Infrastructure  → EF Core persistence, email sending services,
-                             encryption, tracking, webhook dispatch, bounce listener
-EmailSaas.API             → Controllers, middleware, Swagger, API entry point
-```
-
-**Dependency rule:** Domain has no dependencies. Application depends only on Domain. Infrastructure implements Application's interfaces. API wires everything together via dependency injection.
+Built using **Clean Architecture** with **CQRS** via **MediatR** — with clear separation between domain, application, infrastructure, and API layers, following the standard dependency rule (inner layers have no knowledge of outer layers).
 
 *(Full internal project/folder structure is kept in the private repo.)*
 
