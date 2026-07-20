@@ -1,4 +1,5 @@
-﻿using EmailSaas.Application.Features.Webhooks.Commands.CreateWebhookSubscription;
+/*
+using EmailSaas.Application.Features.Webhooks.Commands.CreateWebhookSubscription;
 using EmailSaas.Application.Features.Webhooks.Commands.DeleteWebhookSubscription;
 using EmailSaas.Application.Features.Webhooks.Commands.RegenerateWebhookSecret;
 using EmailSaas.Application.Features.Webhooks.Commands.UpdateWebhookSubscription;
@@ -69,3 +70,4 @@ namespace EmailSaas.API.Controllers
         }
     }
 }
+*/

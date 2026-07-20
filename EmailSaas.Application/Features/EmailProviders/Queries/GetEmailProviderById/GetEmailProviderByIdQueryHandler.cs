@@ -1,4 +1,4 @@
-﻿using EmailSaas.Application.Common.Exceptions;
+using EmailSaas.Application.Common.Exceptions;
 using EmailSaas.Application.Common.Interfaces;
 using EmailSaas.Application.Common.Models;
 using EmailSaas.Application.DTOs.EmailProvider;
@@ -23,26 +23,26 @@ namespace EmailSaas.Application.Features.EmailProviders.Queries.GetEmailProvider
 
         public async Task<Result<EmailProviderResponseDto>> Handle(GetEmailProviderByIdQuery request, CancellationToken cancellationToken)
         {
-            var entity = await _context.EmailProviderConfigs
+            var entity = await _context.MasterEmailProviders
                 .AsNoTracking()
                 .Include(x => x.Client)
                 .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
 
             if (entity == null)
-                throw new NotFoundException("EmailProviderConfig", request.Id);
+                throw new NotFoundException("MasterEmailProvider", request.Id);
 
             var response = new EmailProviderResponseDto
             {
                 Id = entity.Id,
-                ClientId = entity.ClientId,
+                ClientID = entity.ClientID,
                 ClientCode = entity.Client.ClientCode,
                 ClientName = entity.Client.ClientName,
                 ProviderName = entity.ProviderName,
                 SenderName = entity.SenderName,
                 SenderEmail = entity.SenderEmail,
                 ReplyToEmail = entity.ReplyToEmail,
-                SmtpHost = entity.SmtpHost,
-                SmtpPort = entity.SmtpPort,
+                SMTPHost = entity.SMTPHost,
+                SMTPPort = entity.SMTPPort,
                 UserName = entity.UserName,
                 IsDefault = entity.IsDefault,
                 Status = entity.Status,

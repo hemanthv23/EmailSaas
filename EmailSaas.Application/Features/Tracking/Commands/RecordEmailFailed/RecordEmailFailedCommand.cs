@@ -1,4 +1,4 @@
-﻿using EmailSaas.Application.Common.Models;
+using EmailSaas.Application.Common.Models;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -10,7 +10,7 @@ namespace EmailSaas.Application.Features.Tracking.Commands.RecordEmailFailed
 {
     public class RecordEmailFailedCommand : IRequest<Result<bool>>
     {
-        public string MessageId { get; set; } = string.Empty;
+        public string MessageID { get; set; } = string.Empty;
         public string ErrorMessage { get; set; } = string.Empty;
     }
 }

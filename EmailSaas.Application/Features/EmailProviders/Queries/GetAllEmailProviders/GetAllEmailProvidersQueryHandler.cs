@@ -1,4 +1,4 @@
-﻿using EmailSaas.Application.Common.Interfaces;
+using EmailSaas.Application.Common.Interfaces;
 using EmailSaas.Application.Common.Models;
 using EmailSaas.Application.DTOs.EmailProvider;
 using MediatR;
@@ -22,7 +22,7 @@ namespace EmailSaas.Application.Features.EmailProviders.Queries.GetAllEmailProvi
 
         public async Task<Result<List<EmailProviderResponseDto>>> Handle(GetAllEmailProvidersQuery request, CancellationToken cancellationToken)
         {
-            var providers = await _context.EmailProviderConfigs
+            var providers = await _context.MasterEmailProviders
                 .AsNoTracking()
                 .Include(x => x.Client)
                 .Where(x => x.Client.ApplicationId == request.ApplicationId)
@@ -30,15 +30,15 @@ namespace EmailSaas.Application.Features.EmailProviders.Queries.GetAllEmailProvi
                 .Select(x => new EmailProviderResponseDto
                 {
                     Id = x.Id,
-                    ClientId = x.ClientId,
+                    ClientID = x.ClientID,
                     ClientCode = x.Client.ClientCode,
                     ClientName = x.Client.ClientName,
                     ProviderName = x.ProviderName,
                     SenderName = x.SenderName,
                     SenderEmail = x.SenderEmail,
                     ReplyToEmail = x.ReplyToEmail,
-                    SmtpHost = x.SmtpHost,
-                    SmtpPort = x.SmtpPort,
+                    SMTPHost = x.SMTPHost,
+                    SMTPPort = x.SMTPPort,
                     UserName = x.UserName,
                     IsDefault = x.IsDefault,
                     Status = x.Status,

@@ -1,4 +1,4 @@
-﻿using EmailSaas.Application.Common.Interfaces;
+using EmailSaas.Application.Common.Interfaces;
 using EmailSaas.Application.Common.Models;
 using EmailSaas.Application.DTOs.Application;
 using MediatR;
@@ -22,7 +22,7 @@ namespace EmailSaas.Application.Features.Applications.Queries.GetAllApplications
 
         public async Task<Result<List<ApplicationResponseDto>>> Handle(GetAllApplicationsQuery request, CancellationToken cancellationToken)
         {
-            var applications = await _context.ApplicationMasters
+            var applications = await _context.MasterApplications
                 .AsNoTracking()
                 .Where(x => x.Id == request.ApplicationId)
                 .OrderByDescending(x => x.CreatedDate)

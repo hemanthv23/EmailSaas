@@ -1,4 +1,4 @@
-﻿using EmailSaas.Domain.Entities;
+using EmailSaas.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
@@ -9,12 +9,15 @@ using System.Threading.Tasks;
 
 namespace EmailSaas.Infrastructure.Persistence.Configurations
 {
-    public class EmailTemplateMasterConfiguration : IEntityTypeConfiguration<EmailTemplateMaster>
+    public class MasterEmailTemplateConfiguration : IEntityTypeConfiguration<MasterEmailTemplate>
     {
-        public void Configure(EntityTypeBuilder<EmailTemplateMaster> builder)
+        public void Configure(EntityTypeBuilder<MasterEmailTemplate> builder)
         {
             builder.ToTable("MasterEmailTemplate");
             builder.HasKey(x => x.Id);
+            builder.Property(x => x.Id).HasColumnName("TemplateID");
+            builder.Property(x => x.ClientID).HasColumnName("ClientID");
+            builder.Property(x => x.ApplicationId).HasColumnName("AppID");
 
             builder.Property(x => x.TemplateCode).HasMaxLength(100).IsRequired();
             builder.Property(x => x.TemplateName).HasMaxLength(200).IsRequired();
@@ -29,11 +32,16 @@ namespace EmailSaas.Infrastructure.Persistence.Configurations
             builder.Property(x => x.UpdatedBy).HasMaxLength(100);
 
         
-            builder.HasIndex(x => new { x.ClientId, x.TemplateCode }).IsUnique();
+            builder.HasIndex(x => new { x.ClientID, x.TemplateCode }).IsUnique();
 
             builder.HasOne(x => x.Client)
                    .WithMany(c => c.EmailTemplates)
-                   .HasForeignKey(x => x.ClientId)
+                   .HasForeignKey(x => x.ClientID)
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(x => x.Application)
+                   .WithMany()
+                   .HasForeignKey(x => x.ApplicationId)
                    .OnDelete(DeleteBehavior.Restrict);
         }
     }

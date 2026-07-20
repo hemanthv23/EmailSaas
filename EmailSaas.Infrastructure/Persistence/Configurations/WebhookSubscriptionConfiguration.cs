@@ -1,4 +1,5 @@
-﻿using EmailSaas.Domain.Entities;
+/*
+using EmailSaas.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
@@ -17,7 +18,7 @@ namespace EmailSaas.Infrastructure.Persistence.Configurations
 
             builder.HasKey(x => x.Id);
 
-            builder.Property(x => x.ClientId)
+            builder.Property(x => x.ClientID)
                 .IsRequired();
 
             builder.Property(x => x.CallbackUrl)
@@ -37,11 +38,13 @@ namespace EmailSaas.Infrastructure.Persistence.Configurations
                 .HasDefaultValue((byte)1);
 
             builder.HasOne(x => x.Client)
-                .WithMany() // add ICollection<WebhookSubscription> on ClientMaster if you want reverse nav
-                .HasForeignKey(x => x.ClientId)
+                .WithMany() // add ICollection<WebhookSubscription> on MasterClient if you want reverse nav
+                .HasForeignKey(x => x.ClientID)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasIndex(x => x.ClientId);
+            builder.HasIndex(x => x.ClientID);
         }
     }
 }
+
+*/

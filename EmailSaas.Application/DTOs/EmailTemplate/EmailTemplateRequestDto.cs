@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,7 +8,8 @@ namespace EmailSaas.Application.DTOs.EmailTemplate
 {
     public class EmailTemplateRequestDto
     {
-        public int ClientId { get; set; }
+        public int ApplicationId { get; set; }
+        public int ClientID { get; set; }
         public string TemplateCode { get; set; } = string.Empty;
         public string TemplateName { get; set; } = string.Empty;
         public string? Description { get; set; }

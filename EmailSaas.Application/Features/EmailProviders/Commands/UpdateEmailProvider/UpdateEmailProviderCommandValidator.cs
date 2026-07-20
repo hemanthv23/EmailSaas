@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,13 +30,13 @@ namespace EmailSaas.Application.Features.EmailProviders.Commands.UpdateEmailProv
                 .NotEmpty().MaximumLength(100);
 
             // SMTP-style provider rules
-            When(x => !string.IsNullOrEmpty(x.SmtpHost), () =>
+            When(x => !string.IsNullOrEmpty(x.SMTPHost), () =>
             {
-                RuleFor(x => x.SmtpPort)
-                    .NotNull().WithMessage("SmtpPort is required when SmtpHost is provided.");
+                RuleFor(x => x.SMTPPort)
+                    .NotNull().WithMessage("SMTPPort is required when SMTPHost is provided.");
 
                 RuleFor(x => x.UserName)
-                    .NotEmpty().WithMessage("UserName is required when SmtpHost is provided.");
+                    .NotEmpty().WithMessage("UserName is required when SMTPHost is provided.");
             });
 
             // API-key based provider rules — Password not mandatory on update

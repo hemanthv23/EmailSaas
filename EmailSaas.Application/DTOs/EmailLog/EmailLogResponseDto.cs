@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace EmailSaas.Application.DTOs.EmailLog
 {
@@ -10,11 +10,11 @@ namespace EmailSaas.Application.DTOs.EmailLog
         public string ApplicationCode { get; set; } = string.Empty;
         public string ApplicationName { get; set; } = string.Empty;
 
-        public int ClientId { get; set; }
+        public int ClientID { get; set; }
         public string ClientCode { get; set; } = string.Empty;
         public string ClientName { get; set; } = string.Empty;
 
-        public int TemplateId { get; set; }
+        public int TemplateID { get; set; }
         public string TemplateCode { get; set; } = string.Empty;
         public string TemplateName { get; set; } = string.Empty;
 
@@ -29,38 +29,16 @@ namespace EmailSaas.Application.DTOs.EmailLog
 
         public string Status { get; set; } = string.Empty;
         public string? ErrorMessage { get; set; }
-        public DateTime? SentDate { get; set; }
+        public DateTime? SendDate { get; set; }
 
         public string CreatedBy { get; set; } = string.Empty;
         public DateTime CreatedDate { get; set; }
         public string? UpdatedBy { get; set; }
         public DateTime? UpdatedDate { get; set; }
 
-        // Webhook Tracking
-        public string? MessageId { get; set; }
-        public string? WebhookStatus { get; set; }
+        public string? MessageID { get; set; }
 
-        // Delivery Tracking
-        public DateTime? DeliveredAt { get; set; }
-
-        // Open Tracking
-        public DateTime? OpenedAt { get; set; }
-        public DateTime? LastOpenedAt { get; set; }
-        public int OpenCount { get; set; }
-
-        // Click Tracking
-        public DateTime? ClickedAt { get; set; }
-        public DateTime? LastClickedAt { get; set; }
-        public int ClickCount { get; set; }
-
-        // Attachment Tracking
         public bool HasAttachment { get; set; }
-        public string? AttachmentNames { get; set; }
-        public DateTime? AttachmentOpenedAt { get; set; }
-        public int AttachmentOpenCount { get; set; }
-
-        // Bounce Tracking
-        public DateTime? BouncedAt { get; set; }
-        public string? BounceReason { get; set; }
+        public string? AttachmentName { get; set; }
     }
 }

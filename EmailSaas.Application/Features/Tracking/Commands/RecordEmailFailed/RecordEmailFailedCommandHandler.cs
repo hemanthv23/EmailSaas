@@ -1,4 +1,4 @@
-﻿using EmailSaas.Application.Common.Interfaces;
+using EmailSaas.Application.Common.Interfaces;
 using EmailSaas.Application.Common.Models;
 using EmailSaas.Domain.Entities;
 using EmailSaas.Domain.Enums;
@@ -27,33 +27,34 @@ namespace EmailSaas.Application.Features.Tracking.Commands.RecordEmailFailed
         public async Task<Result<bool>> Handle(RecordEmailFailedCommand request, CancellationToken cancellationToken)
         {
             var emailLog = await _context.EmailLogs
-                .FirstOrDefaultAsync(x => x.MessageId == request.MessageId, cancellationToken);
+                .FirstOrDefaultAsync(x => x.MessageID == request.MessageID, cancellationToken);
 
             if (emailLog == null)
-                return Result<bool>.Failure($"EmailLog with MessageId '{request.MessageId}' not found.");
+                return Result<bool>.Failure($"EmailLog with MessageID '{request.MessageID}' not found.");
 
             var now = DateTime.UtcNow;
 
             emailLog.Status = (byte)EmailSendStatus.Failed;
             emailLog.ErrorMessage = request.ErrorMessage;
-            emailLog.WebhookStatus = EmailEventType.Failed.ToString();
             emailLog.UpdatedDate = now;
 
             var eventData = new { request.ErrorMessage };
 
-            _context.EmailEvents.Add(new EmailEvent
+            _context.EmailEventLogs.Add(new EmailEventLog
             {
-                EmailLogId = emailLog.Id,
-                EventType = EmailEventType.Failed.ToString(),
-                EventData = JsonSerializer.Serialize(eventData),
-                OccurredAt = now,
+                LogID = emailLog.Id,
+                MessageID = emailLog.MessageID ?? request.MessageID,
+                EventType = EmailEventLogType.Failed.ToString(),
+                LogData = JsonSerializer.Serialize(eventData),
+                EventLogDate = now,
+                Status = 1,
                 CreatedBy = "System",
                 CreatedDate = now
             });
 
             await _context.SaveChangesAsync(cancellationToken);
 
-            await _webhookDispatcher.QueueWebhookAsync(emailLog.Id, EmailEventType.Failed.ToString(), eventData, cancellationToken);
+            await _webhookDispatcher.QueueWebhookAsync(emailLog.Id, EmailEventLogType.Failed.ToString(), eventData, cancellationToken);
 
             return Result<bool>.Success(true);
         }

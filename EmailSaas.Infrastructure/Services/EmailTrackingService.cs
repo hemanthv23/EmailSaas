@@ -1,9 +1,9 @@
-﻿using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
 using EmailSaas.Application.Common.Interfaces;
 namespace EmailSaas.Infrastructure.Services;
 public class EmailTrackingService : IEmailTrackingService
 {
-    public string GenerateMessageId()
+    public string GenerateMessageID()
     {
         return $"MSG-{Guid.NewGuid():N}".ToUpper();
     }
@@ -21,7 +21,7 @@ public class EmailTrackingService : IEmailTrackingService
     // ─── New: centralizes the header name used for bounce-mail matching ───
     public string GetBounceHeaderName()
     {
-        return "X-EmailSaas-MessageId";
+        return "X-EmailSaas-MessageID";
     }
 
     private static string WrapLinks(

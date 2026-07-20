@@ -1,4 +1,5 @@
-﻿using EmailSaas.Domain.Entities;
+/*
+using EmailSaas.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
@@ -43,12 +44,14 @@ namespace EmailSaas.Infrastructure.Persistence.Configurations
 
             builder.HasOne(x => x.EmailLog)
                 .WithMany(x => x.WebhookDeliveryLogs)
-                .HasForeignKey(x => x.EmailLogId)
+                .HasForeignKey(x => x.LogID)
                 .OnDelete(DeleteBehavior.Restrict); // avoid multiple cascade paths
 
             builder.HasIndex(x => x.WebhookSubscriptionId);
-            builder.HasIndex(x => x.EmailLogId);
+            builder.HasIndex(x => x.LogID);
             builder.HasIndex(x => x.NextRetryAt); // for retry background job scans
         }
     }
 }
+
+*/

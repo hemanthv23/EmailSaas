@@ -1,19 +1,15 @@
-﻿using EmailSaas.Domain.Common;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using EmailSaas.Domain.Common;
 
-namespace EmailSaas.Domain.Entities
+namespace EmailSaas.Domain.Entities;
+
+public class EmailEventLog : AuditableEntity
 {
-    public class EmailEvent : AuditableEntity
-    {
-        public int EmailLogId { get; set; }
-        public string EventType { get; set; } = string.Empty;     // Delivered / Opened / Clicked / Bounced / Failed
-        public string? EventData { get; set; }                    // raw JSON payload (IP, UA, provider response, etc.)
-        public DateTime OccurredAt { get; set; }
+    public int LogID { get; set; }
+    public string MessageID { get; set; } = string.Empty;
+    public string EventType { get; set; } = string.Empty;
+    public string? LogData { get; set; }
+    public DateTime EventLogDate { get; set; }
+    public byte Status { get; set; }
 
-        public EmailLog EmailLog { get; set; } = null!;
-    }
+    public EmailLog EmailLog { get; set; } = null!;
 }

@@ -1,4 +1,4 @@
-﻿using EmailSaas.Application.Common.Interfaces;
+using EmailSaas.Application.Common.Interfaces;
 using EmailSaas.Infrastructure.Persistence;
 using EmailSaas.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
@@ -33,7 +33,7 @@ namespace EmailSaas.Infrastructure
                 client.DefaultRequestHeaders.Add("User-Agent", "EmailSaas-Webhook/1.0");
             });
 
-            services.AddHostedService<WebhookDispatchBackgroundService>();
+            // services.AddHostedService<WebhookDispatchBackgroundService>();
 
             services.AddHostedService<BounceMailboxListenerService>();
 

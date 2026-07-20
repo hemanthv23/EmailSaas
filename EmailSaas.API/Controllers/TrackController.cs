@@ -27,7 +27,7 @@ namespace EmailSaas.API.Controllers
         {
             var command = new RecordEmailOpenCommand
             {
-                MessageId = messageId,
+                MessageID = messageId,
                 IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString(),
                 UserAgent = Request.Headers["User-Agent"].ToString()
             };
@@ -49,7 +49,7 @@ namespace EmailSaas.API.Controllers
             // Using Uri.UnescapeDataString again can break URLs that legitimately contain encoded characters (like spaces encoded as %20).
             var command = new RecordEmailClickCommand
             {
-                MessageId = messageId,
+                MessageID = messageId,
                 OriginalUrl = url,
                 IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString(),
                 UserAgent = Request.Headers["User-Agent"].ToString()
@@ -118,7 +118,7 @@ namespace EmailSaas.API.Controllers
 
                     var command = new RecordEmailDeliveredCommand
                     {
-                        MessageId = messageId,
+                        MessageID = messageId,
                         ProviderResponse = evt.GetRawText(),
                         DeliveredAt = deliveredAt
                     };
@@ -129,7 +129,7 @@ namespace EmailSaas.API.Controllers
                     var reason = (evt.TryGetProperty("reason", out var r) ? r.GetString() : null) ?? "Bounced/Dropped by Provider";
                     var command = new RecordEmailBouncedCommand
                     {
-                        MessageId = messageId,
+                        MessageID = messageId,
                         BounceReason = reason
                     };
                     await _mediator.Send(command, cancellationToken);

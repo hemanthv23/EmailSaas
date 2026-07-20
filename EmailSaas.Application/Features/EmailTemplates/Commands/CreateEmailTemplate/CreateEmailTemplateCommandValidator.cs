@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,8 +11,8 @@ namespace EmailSaas.Application.Features.EmailTemplates.Commands.CreateEmailTemp
     {
         public CreateEmailTemplateCommandValidator()
         {
-            RuleFor(x => x.ClientId)
-                .GreaterThan(0).WithMessage("Valid ClientId is required.");
+            RuleFor(x => x.ClientID)
+                .GreaterThan(0).WithMessage("Valid ClientID is required.");
 
             RuleFor(x => x.TemplateCode)
                 .NotEmpty().WithMessage("TemplateCode is required.")

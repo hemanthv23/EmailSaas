@@ -22,7 +22,7 @@ namespace EmailSaas.Application.Features.Tracking.Commands.RecordEmailClick
         public async Task<Result<string>> Handle(RecordEmailClickCommand request, CancellationToken cancellationToken)
         {
             var emailLog = await _context.EmailLogs
-                .FirstOrDefaultAsync(x => x.MessageId == request.MessageId, cancellationToken);
+                .FirstOrDefaultAsync(x => x.MessageID == request.MessageID, cancellationToken);
 
             if (emailLog == null)
                 return Result<string>.Success(request.OriginalUrl);
@@ -32,66 +32,48 @@ namespace EmailSaas.Application.Features.Tracking.Commands.RecordEmailClick
             // --- NEW: Implicit Open Tracking ---
             // If they clicked a link, they definitely opened the email.
             // If the image was blocked, we can use this click to record the Open event too!
-            if (emailLog.OpenedAt == null)
+            if (emailLog.Status != (byte)EmailSendStatus.Delivered)
             {
-                emailLog.OpenedAt = now;
-                emailLog.LastOpenedAt = now;
-                emailLog.OpenCount += 1;
-                emailLog.DeliveredAt ??= now;
                 emailLog.Status = (byte)EmailSendStatus.Delivered;
 
                 // Fire an "Opened" event to the Events table
-                _context.EmailEvents.Add(new EmailEvent
+                _context.EmailEventLogs.Add(new EmailEventLog
                 {
-                    EmailLogId = emailLog.Id,
-                    EventType = EmailEventType.Opened.ToString(),
-                    EventData = JsonSerializer.Serialize(new { request.IpAddress, request.UserAgent, OpenCount = emailLog.OpenCount, Note = "Inferred from Click" }),
-                    OccurredAt = now,
+                    LogID = emailLog.Id,
+                    MessageID = emailLog.MessageID ?? request.MessageID,
+                    EventType = EmailEventLogType.Opened.ToString(),
+                    LogData = JsonSerializer.Serialize(new { request.IpAddress, request.UserAgent, Note = "Inferred from Click" }),
+                    EventLogDate = now,
+                    Status = 1,
                     CreatedBy = "System",
                     CreatedDate = now
                 });
             }
 
-            if (emailLog.ClickedAt == null)
-                emailLog.ClickedAt = now;
-
-            emailLog.LastClickedAt = now;
-            emailLog.ClickCount += 1;
-            emailLog.WebhookStatus = EmailEventType.Clicked.ToString();
             emailLog.UpdatedDate = now;
-
-            _context.EmailLinkClicks.Add(new EmailLinkClick
-            {
-                EmailLogId = emailLog.Id,
-                OriginalUrl = request.OriginalUrl,
-                ClickedAt = now,
-                IpAddress = request.IpAddress,
-                UserAgent = request.UserAgent,
-                CreatedBy = "System",
-                CreatedDate = now
-            });
 
             var eventData = new
             {
                 request.OriginalUrl,
                 request.IpAddress,
-                request.UserAgent,
-                ClickCount = emailLog.ClickCount
+                request.UserAgent
             };
 
-            _context.EmailEvents.Add(new EmailEvent
+            _context.EmailEventLogs.Add(new EmailEventLog
             {
-                EmailLogId = emailLog.Id,
-                EventType = EmailEventType.Clicked.ToString(),
-                EventData = JsonSerializer.Serialize(eventData),
-                OccurredAt = now,
+                LogID = emailLog.Id,
+                MessageID = emailLog.MessageID ?? request.MessageID,
+                EventType = EmailEventLogType.Clicked.ToString(),
+                LogData = JsonSerializer.Serialize(eventData),
+                EventLogDate = now,
+                Status = 1,
                 CreatedBy = "System",
                 CreatedDate = now
             });
 
             await _context.SaveChangesAsync(cancellationToken);
 
-            await _webhookDispatcher.QueueWebhookAsync(emailLog.Id, EmailEventType.Clicked.ToString(), eventData, cancellationToken);
+            await _webhookDispatcher.QueueWebhookAsync(emailLog.Id, EmailEventLogType.Clicked.ToString(), eventData, cancellationToken);
 
             return Result<string>.Success(request.OriginalUrl);
         }

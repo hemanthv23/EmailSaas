@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using EmailSaas.Application.Common.Interfaces;
 using EmailSaas.Application.Common.Models;
@@ -19,13 +19,13 @@ public class CreateApplicationCommandHandler : IRequestHandler<CreateApplication
 
     public async Task<Result<ApplicationResponseDto>> Handle(CreateApplicationCommand request, CancellationToken cancellationToken)
     {
-        var exists = await _context.ApplicationMasters
+        var exists = await _context.MasterApplications
             .AnyAsync(x => x.ApplicationCode == request.ApplicationCode, cancellationToken);
 
         if (exists)
             return Result<ApplicationResponseDto>.Failure($"ApplicationCode '{request.ApplicationCode}' already exists.");
 
-        var entity = new ApplicationMaster
+        var entity = new MasterApplication
         {
             ApplicationCode = request.ApplicationCode,
             ApplicationName = request.ApplicationName,
@@ -37,7 +37,7 @@ public class CreateApplicationCommandHandler : IRequestHandler<CreateApplication
             CreatedDate = DateTime.UtcNow
         };
 
-        _context.ApplicationMasters.Add(entity);
+        _context.MasterApplications.Add(entity);
         await _context.SaveChangesAsync(cancellationToken);
 
         var response = new ApplicationResponseDto

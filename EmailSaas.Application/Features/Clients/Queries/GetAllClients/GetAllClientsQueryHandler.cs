@@ -1,4 +1,4 @@
-﻿using EmailSaas.Application.Common.Interfaces;
+using EmailSaas.Application.Common.Interfaces;
 using EmailSaas.Application.Common.Models;
 using EmailSaas.Application.DTOs.Client;
 using MediatR;
@@ -22,7 +22,7 @@ namespace EmailSaas.Application.Features.Clients.Queries.GetAllClients
 
         public async Task<Result<List<ClientResponseDto>>> Handle(GetAllClientsQuery request, CancellationToken cancellationToken)
         {
-            var clients = await _context.ClientMasters
+            var clients = await _context.MasterClients
                 .AsNoTracking()
                 .Include(x => x.Application)
                  .Where(x => x.ApplicationId == request.ApplicationId)

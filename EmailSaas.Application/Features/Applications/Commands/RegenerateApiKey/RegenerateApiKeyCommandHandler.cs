@@ -1,4 +1,4 @@
-﻿using EmailSaas.Application.Common.Interfaces;
+using EmailSaas.Application.Common.Interfaces;
 using EmailSaas.Application.Common.Models;
 using EmailSaas.Application.DTOs.Application;
 using MediatR;
@@ -25,7 +25,7 @@ namespace EmailSaas.Application.Features.Applications.Commands.RegenerateApiKey
             CancellationToken cancellationToken)
         {
             // Step 1: Find application by ApplicationCode
-            var entity = await _context.ApplicationMasters
+            var entity = await _context.MasterApplications
                 .FirstOrDefaultAsync(x => x.ApplicationCode == request.ApplicationCode,
                     cancellationToken);
 

@@ -1,4 +1,5 @@
-﻿using EmailSaas.Application.Common.Models;
+/*
+using EmailSaas.Application.Common.Models;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -17,3 +18,5 @@ namespace EmailSaas.Application.Features.Webhooks.Commands.UpdateWebhookSubscrip
         public string UpdatedBy { get; set; } = string.Empty;
     }
 }
+
+*/

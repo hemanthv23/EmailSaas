@@ -1,4 +1,5 @@
-﻿using EmailSaas.Application.Common.Interfaces;
+/*
+using EmailSaas.Application.Common.Interfaces;
 using EmailSaas.Application.Common.Models;
 using EmailSaas.Domain.Enums;
 using MediatR;
@@ -39,3 +40,5 @@ namespace EmailSaas.Application.Features.Webhooks.Commands.DeleteWebhookSubscrip
         }
     }
 }
+
+*/

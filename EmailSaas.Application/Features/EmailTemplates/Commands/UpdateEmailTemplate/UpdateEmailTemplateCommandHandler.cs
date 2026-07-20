@@ -1,4 +1,4 @@
-﻿using EmailSaas.Application.Common.Exceptions;
+using EmailSaas.Application.Common.Exceptions;
 using EmailSaas.Application.Common.Interfaces;
 using EmailSaas.Application.Common.Models;
 using EmailSaas.Application.DTOs.EmailTemplate;
@@ -25,12 +25,12 @@ namespace EmailSaas.Application.Features.EmailTemplates.Commands.UpdateEmailTemp
             UpdateEmailTemplateCommand request,
             CancellationToken cancellationToken)
         {
-            var entity = await _context.EmailTemplateMasters
+            var entity = await _context.MasterEmailTemplates
                 .Include(x => x.Client)
                 .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
 
             if (entity == null)
-                throw new NotFoundException("EmailTemplateMaster", request.Id);
+                throw new NotFoundException("MasterEmailTemplate", request.Id);
 
             entity.TemplateName = request.TemplateName;
             entity.Description = request.Description;
@@ -47,7 +47,7 @@ namespace EmailSaas.Application.Features.EmailTemplates.Commands.UpdateEmailTemp
             var response = new EmailTemplateResponseDto
             {
                 Id = entity.Id,
-                ClientId = entity.ClientId,
+                ClientID = entity.ClientID,
                 ClientCode = entity.Client.ClientCode,
                 ClientName = entity.Client.ClientName,
                 TemplateCode = entity.TemplateCode,

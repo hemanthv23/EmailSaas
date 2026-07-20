@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,8 +11,8 @@ namespace EmailSaas.Application.Common.Interfaces
         // Inject tracking pixel + wrap all links in HTML
         string InjectTracking(string htmlBody, string messageId, string baseUrl);
 
-        // Generate unique MessageId for each email
-        string GenerateMessageId();
+        // Generate unique MessageID for each email
+        string GenerateMessageID();
 
         // ─── New: centralizes the header name used for bounce-mail matching ───
         string GetBounceHeaderName();

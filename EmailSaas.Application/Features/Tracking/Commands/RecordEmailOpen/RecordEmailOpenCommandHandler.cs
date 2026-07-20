@@ -22,52 +22,43 @@ namespace EmailSaas.Application.Features.Tracking.Commands.RecordEmailOpen
         public async Task<Result<bool>> Handle(RecordEmailOpenCommand request, CancellationToken cancellationToken)
         {
             var emailLog = await _context.EmailLogs
-                .FirstOrDefaultAsync(x => x.MessageId == request.MessageId, cancellationToken);
+                .FirstOrDefaultAsync(x => x.MessageID == request.MessageID, cancellationToken);
 
             if (emailLog == null)
-                return Result<bool>.Failure($"EmailLog with MessageId '{request.MessageId}' not found.");
+                return Result<bool>.Failure($"EmailLog with MessageID '{request.MessageID}' not found.");
 
             var now = DateTime.UtcNow;
 
             // Implicit Delivery Tracking:
             // If the email is opened, it must have been delivered.
-            emailLog.DeliveredAt ??= now;
-
-            if (emailLog.OpenedAt == null)
+            if (emailLog.Status != (byte)EmailSendStatus.Delivered)
             {
-                emailLog.OpenedAt = now;
-                
-                if (emailLog.Status != (byte)EmailSendStatus.Delivered)
-                {
-                    emailLog.Status = (byte)EmailSendStatus.Delivered;
-                }
+                emailLog.Status = (byte)EmailSendStatus.Delivered;
             }
 
-            emailLog.LastOpenedAt = now;
-            emailLog.OpenCount += 1;
-            emailLog.WebhookStatus = EmailEventType.Opened.ToString();
             emailLog.UpdatedDate = now;
 
             var eventData = new
             {
                 request.IpAddress,
-                request.UserAgent,
-                OpenCount = emailLog.OpenCount
+                request.UserAgent
             };
 
-            _context.EmailEvents.Add(new EmailEvent
+            _context.EmailEventLogs.Add(new EmailEventLog
             {
-                EmailLogId = emailLog.Id,
-                EventType = EmailEventType.Opened.ToString(),
-                EventData = JsonSerializer.Serialize(eventData),
-                OccurredAt = now,
+                LogID = emailLog.Id,
+                MessageID = emailLog.MessageID ?? request.MessageID,
+                EventType = EmailEventLogType.Opened.ToString(),
+                LogData = JsonSerializer.Serialize(eventData),
+                EventLogDate = now,
+                Status = 1,
                 CreatedBy = "System",
                 CreatedDate = now
             });
 
             await _context.SaveChangesAsync(cancellationToken);
 
-            await _webhookDispatcher.QueueWebhookAsync(emailLog.Id, EmailEventType.Opened.ToString(), eventData, cancellationToken);
+            await _webhookDispatcher.QueueWebhookAsync(emailLog.Id, EmailEventLogType.Opened.ToString(), eventData, cancellationToken);
 
             return Result<bool>.Success(true);
         }

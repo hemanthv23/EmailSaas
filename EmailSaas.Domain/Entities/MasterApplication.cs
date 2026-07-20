@@ -1,4 +1,4 @@
-﻿using EmailSaas.Domain.Common;
+using EmailSaas.Domain.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 
 namespace EmailSaas.Domain.Entities
 {
-    public class ApplicationMaster : AuditableEntity
+    public class MasterApplication : AuditableEntity
     {
         public string ApplicationCode { get; set; } = string.Empty;
         public string ApplicationName { get; set; } = string.Empty;
         public string ApiKey { get; set; } = string.Empty;
         public byte Status { get; set; }
-        public ICollection<ClientMaster> Clients { get; set; } = new List<ClientMaster>();
+        public ICollection<MasterClient> Clients { get; set; } = new List<MasterClient>();
     }
 }

@@ -26,58 +26,58 @@ public class CreateEmailProviderCommandHandler : IRequestHandler<CreateEmailProv
         CancellationToken cancellationToken)
     {
         // Check client exists
-        var client = await _context.ClientMasters
-            .FirstOrDefaultAsync(x => x.Id == request.ClientId, cancellationToken);
+        var client = await _context.MasterClients
+            .FirstOrDefaultAsync(x => x.Id == request.ClientID, cancellationToken);
 
         if (client == null)
             return Result<EmailProviderResponseDto>.Failure(
-                $"Client with Id '{request.ClientId}' not found.");
+                $"Client with Id '{request.ClientID}' not found.");
 
         // If IsDefault unset existing default for this client
         if (request.IsDefault)
         {
-            var existingDefaults = await _context.EmailProviderConfigs
-                .Where(x => x.ClientId == request.ClientId && x.IsDefault)
+            var existingDefaults = await _context.MasterEmailProviders
+                .Where(x => x.ClientID == request.ClientID && x.IsDefault)
                 .ToListAsync(cancellationToken);
 
             foreach (var existing in existingDefaults)
                 existing.IsDefault = false;
         }
 
-        var entity = new EmailProviderConfig
+        var entity = new MasterEmailProvider
         {
-            ClientId = request.ClientId,
+            ClientID = request.ClientID,
             ProviderName = request.ProviderName,
             SenderName = request.SenderName,
             SenderEmail = request.SenderEmail,
             ReplyToEmail = request.ReplyToEmail,
-            SmtpHost = request.SmtpHost,
-            SmtpPort = request.SmtpPort,
+            SMTPHost = request.SMTPHost,
+            SMTPPort = request.SMTPPort,
 
             // Microsoft Graph:
             // UserName column stores Tenant ID (Plain Text)
             UserName = request.UserName,
 
             // Client Secret (Encrypted)
-            PasswordEncrypted = !string.IsNullOrWhiteSpace(request.Password)
+            Password = !string.IsNullOrWhiteSpace(request.Password)
                 ? _encryptionService.Encrypt(request.Password)
                 : null,
 
             // Client ID (Plain Text)
-            ApiKeyEncrypted = !string.IsNullOrWhiteSpace(request.ApiKey)
+            APIKey = !string.IsNullOrWhiteSpace(request.ApiKey)
                 ? request.ApiKey
                 : null,
-            ApiEndpoint = request.ApiEndpoint,
+            APIEndPoint = request.APIEndPoint,
 
             // IMAP Bounce Monitoring Fields
-            ImapHost = request.ImapHost,
-            ImapPort = request.ImapPort,
-            ImapUserName = request.ImapUserName,
-            ImapPasswordEncrypted = !string.IsNullOrWhiteSpace(request.ImapPassword)
-                ? _encryptionService.Encrypt(request.ImapPassword)
+            IMAPHost = request.IMAPHost,
+            IMAPPort = request.IMAPPort,
+            IMPAUserName = request.IMPAUserName,
+            IMAPPassword = !string.IsNullOrWhiteSpace(request.IMAPPassword)
+                ? _encryptionService.Encrypt(request.IMAPPassword)
                 : null,
-            ImapUseSsl = request.ImapUseSsl ?? true,
-            BounceMonitoringEnabled = request.BounceMonitoringEnabled ?? false,
+            IMAPSSL = request.IMAPSSL ?? true,
+//            BounceMonitoringEnabled = request.BounceMonitoringEnabled ?? false,
 
             IsDefault = request.IsDefault,
             Status = (byte)CommonStatus.Active,
@@ -85,21 +85,21 @@ public class CreateEmailProviderCommandHandler : IRequestHandler<CreateEmailProv
             CreatedDate = DateTime.UtcNow
         };
 
-        _context.EmailProviderConfigs.Add(entity);
+        _context.MasterEmailProviders.Add(entity);
         await _context.SaveChangesAsync(cancellationToken);
 
         var response = new EmailProviderResponseDto
         {
             Id = entity.Id,
-            ClientId = entity.ClientId,
+            ClientID = entity.ClientID,
             ClientCode = client.ClientCode,
             ClientName = client.ClientName,
             ProviderName = entity.ProviderName,
             SenderName = entity.SenderName,
             SenderEmail = entity.SenderEmail,
             ReplyToEmail = entity.ReplyToEmail,
-            SmtpHost = entity.SmtpHost,
-            SmtpPort = entity.SmtpPort,
+            SMTPHost = entity.SMTPHost,
+            SMTPPort = entity.SMTPPort,
             UserName = entity.UserName,
             IsDefault = entity.IsDefault,
             Status = entity.Status,

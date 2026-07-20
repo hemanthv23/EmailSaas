@@ -1,4 +1,4 @@
-﻿using EmailSaas.Application.Common.Interfaces;
+using EmailSaas.Application.Common.Interfaces;
 using EmailSaas.Application.Common.Models;
 using EmailSaas.Application.DTOs.EmailTemplate;
 using EmailSaas.Domain.Entities;
@@ -25,23 +25,24 @@ namespace EmailSaas.Application.Features.EmailTemplates.Commands.CreateEmailTemp
         public async Task<Result<EmailTemplateResponseDto>> Handle(CreateEmailTemplateCommand request, CancellationToken cancellationToken)
         {
             // Check client exists
-            var client = await _context.ClientMasters
-                .FirstOrDefaultAsync(x => x.Id == request.ClientId, cancellationToken);
+            var client = await _context.MasterClients
+                .FirstOrDefaultAsync(x => x.Id == request.ClientID, cancellationToken);
 
             if (client == null)
-                return Result<EmailTemplateResponseDto>.Failure($"Client with Id '{request.ClientId}' not found.");
+                return Result<EmailTemplateResponseDto>.Failure($"Client with Id '{request.ClientID}' not found.");
 
             // Check duplicate TemplateCode for same client
-            var exists = await _context.EmailTemplateMasters
-                .AnyAsync(x => x.ClientId == request.ClientId
+            var exists = await _context.MasterEmailTemplates
+                .AnyAsync(x => x.ClientID == request.ClientID
                             && x.TemplateCode == request.TemplateCode, cancellationToken);
 
             if (exists)
                 return Result<EmailTemplateResponseDto>.Failure($"TemplateCode '{request.TemplateCode}' already exists for this client.");
 
-            var entity = new EmailTemplateMaster
+            var entity = new MasterEmailTemplate
             {
-                ClientId = request.ClientId,
+                ApplicationId = request.ApplicationId,
+                ClientID = request.ClientID,
                 TemplateCode = request.TemplateCode,
                 TemplateName = request.TemplateName,
                 Description = request.Description,
@@ -55,13 +56,13 @@ namespace EmailSaas.Application.Features.EmailTemplates.Commands.CreateEmailTemp
                 CreatedDate = DateTime.UtcNow
             };
 
-            _context.EmailTemplateMasters.Add(entity);
+            _context.MasterEmailTemplates.Add(entity);
             await _context.SaveChangesAsync(cancellationToken);
 
             var response = new EmailTemplateResponseDto
             {
                 Id = entity.Id,
-                ClientId = entity.ClientId,
+                ClientID = entity.ClientID,
                 ClientCode = client.ClientCode,
                 ClientName = client.ClientName,
                 TemplateCode = entity.TemplateCode,

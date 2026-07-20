@@ -35,49 +35,34 @@ public class GetEmailLogByIdQueryHandler : IRequestHandler<GetEmailLogByIdQuery,
             ApplicationId = entity.ApplicationId,
             ApplicationCode = entity.Application.ApplicationCode,
             ApplicationName = entity.Application.ApplicationName,
-            ClientId = entity.ClientId,
+            ClientID = entity.ClientID,
             ClientCode = entity.Client.ClientCode,
             ClientName = entity.Client.ClientName,
-            TemplateId = entity.TemplateId,
+            TemplateID = entity.TemplateID,
             TemplateCode = entity.Template.TemplateCode,
             TemplateName = entity.Template.TemplateName,
             ToEmail = entity.ToEmail,
             CcEmail = entity.CcEmail,
             BccEmail = entity.BccEmail,
-            //Subject = entity.Subject,
-            //ParameterValues = entity.ParameterValues,
-            //RenderedBody = entity.RenderedBody,
+            Subject = entity.Subject,
+            ParameterValues = entity.ParameterValues,
+            RenderedBody = entity.RenderedBody,
             Status = entity.Status == (byte)EmailSendStatus.Sent ? "Sent"
                    : entity.Status == (byte)EmailSendStatus.Failed ? "Failed"
                    : "Pending",
             ErrorMessage = entity.ErrorMessage,
-            SentDate = entity.SentDate,
+            SendDate = entity.SendDate,
             CreatedBy = entity.CreatedBy,
             CreatedDate = entity.CreatedDate,
             UpdatedBy = entity.UpdatedBy,
             UpdatedDate = entity.UpdatedDate,
 
             // ─── Webhook tracking ─────────────────────────────────────
-            MessageId = entity.MessageId,
-            WebhookStatus = entity.WebhookStatus,
-
-            // ─── Delivery tracking ────────────────────────────────────
-            DeliveredAt = entity.DeliveredAt,
-
-            // ─── Open tracking ────────────────────────────────────────
-            OpenedAt = entity.OpenedAt,
-            LastOpenedAt = entity.LastOpenedAt,
-            OpenCount = entity.OpenCount,
+            MessageID = entity.MessageID,
 
             // ─── Attachment tracking ──────────────────────────────────
             HasAttachment = entity.HasAttachment,
-            AttachmentNames = entity.AttachmentNames,
-            AttachmentOpenedAt = entity.AttachmentOpenedAt,
-            AttachmentOpenCount = entity.AttachmentOpenCount,
-
-            // ─── Bounce tracking ──────────────────────────────────────
-            BouncedAt = entity.BouncedAt,
-            BounceReason = entity.BounceReason
+            AttachmentName = entity.AttachmentName
         };
 
         return Result<EmailLogResponseDto>.Success(response);

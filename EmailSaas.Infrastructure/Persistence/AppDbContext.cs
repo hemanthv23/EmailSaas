@@ -1,4 +1,4 @@
-﻿using EmailSaas.Domain.Entities;
+using EmailSaas.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using EmailSaas.Application.Common.Interfaces;
 using System;
@@ -15,16 +15,16 @@ namespace EmailSaas.Infrastructure.Persistence
         {
         }
 
-        public DbSet<ApplicationMaster> ApplicationMasters => Set<ApplicationMaster>();
-        public DbSet<ClientMaster> ClientMasters => Set<ClientMaster>();
-        public DbSet<EmailProviderConfig> EmailProviderConfigs => Set<EmailProviderConfig>();
-        public DbSet<EmailTemplateMaster> EmailTemplateMasters => Set<EmailTemplateMaster>();
+        public DbSet<MasterApplication> MasterApplications => Set<MasterApplication>();
+        public DbSet<MasterClient> MasterClients => Set<MasterClient>();
+        public DbSet<MasterEmailProvider> MasterEmailProviders => Set<MasterEmailProvider>();
+        public DbSet<MasterEmailTemplate> MasterEmailTemplates => Set<MasterEmailTemplate>();
         public DbSet<EmailLog> EmailLogs => Set<EmailLog>();
 
-        public DbSet<EmailEvent> EmailEvents => Set<EmailEvent>();
-        public DbSet<EmailLinkClick> EmailLinkClicks => Set<EmailLinkClick>();
-        public DbSet<WebhookSubscription> WebhookSubscriptions => Set<WebhookSubscription>();
-        public DbSet<WebhookDeliveryLog> WebhookDeliveryLogs => Set<WebhookDeliveryLog>();
+        public DbSet<EmailEventLog> EmailEventLogs => Set<EmailEventLog>();
+        // public DbSet<EmailLinkClick> EmailLinkClicks => Set<EmailLinkClick>();
+        // public DbSet<WebhookSubscription> WebhookSubscriptions => Set<WebhookSubscription>();
+        // public DbSet<WebhookDeliveryLog> WebhookDeliveryLogs => Set<WebhookDeliveryLog>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +11,7 @@ namespace EmailSaas.Application.Features.Tracking.Commands.RecordEmailOpen
     {
         public RecordEmailOpenCommandValidator()
         {
-            RuleFor(x => x.MessageId).NotEmpty().MaximumLength(500);
+            RuleFor(x => x.MessageID).NotEmpty().MaximumLength(500);
         }
     }
 }

@@ -10,7 +10,7 @@ namespace EmailSaas.Application.Common.Interfaces
     public interface IEmailSenderService
     {
         Task<(bool Success, string? ErrorMessage)> SendAsync(
-            EmailProviderConfig providerConfig,
+            MasterEmailProvider providerConfig,
             string toEmail,
             string? ccEmail,
             string? bccEmail,

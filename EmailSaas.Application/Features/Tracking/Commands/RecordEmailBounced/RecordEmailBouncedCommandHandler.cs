@@ -1,4 +1,4 @@
-﻿using EmailSaas.Application.Common.Interfaces;
+using EmailSaas.Application.Common.Interfaces;
 using EmailSaas.Application.Common.Models;
 using EmailSaas.Domain.Entities;
 using EmailSaas.Domain.Enums;
@@ -27,34 +27,34 @@ namespace EmailSaas.Application.Features.Tracking.Commands.RecordEmailBounced
         public async Task<Result<bool>> Handle(RecordEmailBouncedCommand request, CancellationToken cancellationToken)
         {
             var emailLog = await _context.EmailLogs
-                .FirstOrDefaultAsync(x => x.MessageId == request.MessageId, cancellationToken);
+                .FirstOrDefaultAsync(x => x.MessageID == request.MessageID, cancellationToken);
 
             if (emailLog == null)
-                return Result<bool>.Failure($"EmailLog with MessageId '{request.MessageId}' not found.");
+                return Result<bool>.Failure($"EmailLog with MessageID '{request.MessageID}' not found.");
 
             var now = DateTime.UtcNow;
 
             emailLog.Status = (byte)EmailSendStatus.Bounced;
-            emailLog.BouncedAt = now;
-            emailLog.BounceReason = request.BounceReason;
-            emailLog.WebhookStatus = EmailEventType.Bounced.ToString();
+            emailLog.UpdatedDate = now;
             emailLog.UpdatedDate = now;
 
             var eventData = new { request.BounceReason, request.IsHardBounce };
 
-            _context.EmailEvents.Add(new EmailEvent
+            _context.EmailEventLogs.Add(new EmailEventLog
             {
-                EmailLogId = emailLog.Id,
-                EventType = EmailEventType.Bounced.ToString(),
-                EventData = JsonSerializer.Serialize(eventData),
-                OccurredAt = now,
+                LogID = emailLog.Id,
+                MessageID = emailLog.MessageID ?? request.MessageID,
+                EventType = EmailEventLogType.Bounced.ToString(),
+                LogData = JsonSerializer.Serialize(eventData),
+                EventLogDate = now,
+                Status = 1,
                 CreatedBy = "System",
                 CreatedDate = now
             });
 
             await _context.SaveChangesAsync(cancellationToken);
 
-            await _webhookDispatcher.QueueWebhookAsync(emailLog.Id, EmailEventType.Bounced.ToString(), eventData, cancellationToken);
+            await _webhookDispatcher.QueueWebhookAsync(emailLog.Id, EmailEventLogType.Bounced.ToString(), eventData, cancellationToken);
 
             return Result<bool>.Success(true);
         }

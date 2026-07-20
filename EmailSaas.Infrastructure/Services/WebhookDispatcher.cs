@@ -1,4 +1,4 @@
-﻿using EmailSaas.Application.Common.Interfaces;
+using EmailSaas.Application.Common.Interfaces;
 using EmailSaas.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
@@ -16,6 +16,9 @@ namespace EmailSaas.Infrastructure.Services
 
         public async Task QueueWebhookAsync(int emailLogId, string eventType, object eventPayload, CancellationToken cancellationToken)
         {
+            // Webhook functionality temporarily commented out
+            await Task.CompletedTask;
+            /*
             var emailLog = await _context.EmailLogs
                 .FirstOrDefaultAsync(x => x.Id == emailLogId, cancellationToken);
 
@@ -24,7 +27,7 @@ namespace EmailSaas.Infrastructure.Services
 
             // Find active subscriptions for this client that care about this event type
             var subscriptions = await _context.WebhookSubscriptions
-                .Where(x => x.ClientId == emailLog.ClientId
+                .Where(x => x.ClientID == emailLog.ClientID
                          && x.Status == 1 // Active
                          && x.EventTypes.Contains(eventType))
                 .ToListAsync(cancellationToken);
@@ -47,7 +50,7 @@ namespace EmailSaas.Infrastructure.Services
                 _context.WebhookDeliveryLogs.Add(new WebhookDeliveryLog
                 {
                     WebhookSubscriptionId = sub.Id,
-                    EmailLogId = emailLog.Id,
+                    LogID = emailLog.Id,
                     EventType = eventType,
                     Payload = payload,
                     AttemptNumber = 1,
@@ -59,6 +62,7 @@ namespace EmailSaas.Infrastructure.Services
             }
 
             await _context.SaveChangesAsync(cancellationToken);
+            */
         }
 
         private static string BuildPayload(EmailLog emailLog, string eventType, object eventPayload)
@@ -66,9 +70,9 @@ namespace EmailSaas.Infrastructure.Services
             var payload = new
             {
                 EventType = eventType,
-                MessageId = emailLog.MessageId,
-                EmailLogId = emailLog.Id,
-                ClientId = emailLog.ClientId,
+                MessageID = emailLog.MessageID,
+                LogID = emailLog.Id,
+                ClientID = emailLog.ClientID,
                 ToEmail = emailLog.ToEmail,
                 OccurredAt = DateTime.UtcNow,
                 Data = eventPayload

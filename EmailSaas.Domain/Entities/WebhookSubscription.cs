@@ -1,4 +1,4 @@
-﻿using EmailSaas.Domain.Common;
+using EmailSaas.Domain.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace EmailSaas.Domain.Entities
 {
+/*
     public class WebhookSubscription : AuditableEntity
     {
         public int ClientId { get; set; }
@@ -15,7 +16,8 @@ namespace EmailSaas.Domain.Entities
         public string EventTypes { get; set; } = string.Empty;    // CSV: "Delivered,Opened,Clicked,Bounced,Failed"
         public byte Status { get; set; }                          // 1=Active, 0=Inactive
 
-        public ClientMaster Client { get; set; } = null!;
+        public MasterClient Client { get; set; } = null!;
         public ICollection<WebhookDeliveryLog> DeliveryLogs { get; set; } = new List<WebhookDeliveryLog>();
     }
+*/
 }

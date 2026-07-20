@@ -6,9 +6,9 @@ public class CreateEmailProviderCommandValidator : AbstractValidator<CreateEmail
 {
     public CreateEmailProviderCommandValidator()
     {
-        RuleFor(x => x.ClientId)
+        RuleFor(x => x.ClientID)
             .GreaterThan(0)
-            .WithMessage("Valid ClientId is required.");
+            .WithMessage("Valid ClientID is required.");
 
         RuleFor(x => x.ProviderName)
             .NotEmpty().WithMessage("ProviderName is required.")
@@ -34,7 +34,7 @@ public class CreateEmailProviderCommandValidator : AbstractValidator<CreateEmail
             .MaximumLength(100);
 
         // ✅ Microsoft Graph specific rules
-        // TenantId (UserName), AzureClientId (ApiKey), ClientSecret (Password) required
+        // TenantId (UserName), AzureClientID (ApiKey), ClientSecret (Password) required
         When(x => x.ProviderName == "MicrosoftGraph", () =>
         {
             RuleFor(x => x.UserName)
@@ -43,38 +43,38 @@ public class CreateEmailProviderCommandValidator : AbstractValidator<CreateEmail
 
             RuleFor(x => x.ApiKey)
                 .NotEmpty()
-                .WithMessage("AzureClientId is required for MicrosoftGraph provider (stored in ApiKey field).");
+                .WithMessage("AzureClientID is required for MicrosoftGraph provider (stored in ApiKey field).");
 
             RuleFor(x => x.Password)
                 .NotEmpty()
                 .WithMessage("ClientSecret is required for MicrosoftGraph provider (stored in Password field).");
         });
 
-        // ─── SMTP-style provider rules (SmtpHost given) ───────
+        // ─── SMTP-style provider rules (SMTPHost given) ───────
         When(x => x.ProviderName != "MicrosoftGraph"
-                && !string.IsNullOrEmpty(x.SmtpHost), () =>
+                && !string.IsNullOrEmpty(x.SMTPHost), () =>
                 {
-                    RuleFor(x => x.SmtpPort)
+                    RuleFor(x => x.SMTPPort)
                         .NotNull()
-                        .WithMessage("SmtpPort is required when SmtpHost is provided.");
+                        .WithMessage("SMTPPort is required when SMTPHost is provided.");
 
                     RuleFor(x => x.UserName)
                         .NotEmpty()
-                        .WithMessage("UserName is required when SmtpHost is provided.")
+                        .WithMessage("UserName is required when SMTPHost is provided.")
                         .MaximumLength(200);
 
                     RuleFor(x => x.Password)
                         .NotEmpty()
-                        .WithMessage("Password is required when SmtpHost is provided.");
+                        .WithMessage("Password is required when SMTPHost is provided.");
                 });
 
         // ─── API-key based provider rules ──
         When(x => x.ProviderName != "MicrosoftGraph"
-                && string.IsNullOrEmpty(x.SmtpHost), () =>
+                && string.IsNullOrEmpty(x.SMTPHost), () =>
                 {
                     RuleFor(x => x.ApiKey)
                         .NotEmpty()
-                        .WithMessage("ApiKey is required when SmtpHost is not provided (API-based provider).");
+                        .WithMessage("ApiKey is required when SMTPHost is not provided (API-based provider).");
                 });
     }
 }

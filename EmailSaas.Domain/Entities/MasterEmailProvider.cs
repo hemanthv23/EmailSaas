@@ -7,30 +7,27 @@ using System.Threading.Tasks;
 
 namespace EmailSaas.Domain.Entities
 {
-    public class EmailProviderConfig : AuditableEntity
+    public class MasterEmailProvider : AuditableEntity
     {
-        public int ClientId { get; set; }
+        public int ClientID { get; set; }
         public string ProviderName { get; set; } = string.Empty;
         public string SenderName { get; set; } = string.Empty;
         public string SenderEmail { get; set; } = string.Empty;
         public string? ReplyToEmail { get; set; }
-        public string? SmtpHost { get; set; }
-        public int? SmtpPort { get; set; }
         public string? UserName { get; set; }
-        public string? PasswordEncrypted { get; set; }
-        public string? ApiKeyEncrypted { get; set; }
-        public string? ApiEndpoint { get; set; }
-
-        // ─── Bounce mailbox (IMAP) — for SMTP-based providers only ────
-        public string? ImapHost { get; set; }
-        public int? ImapPort { get; set; }
-        public string? ImapUserName { get; set; }
-        public string? ImapPasswordEncrypted { get; set; }
-        public bool ImapUseSsl { get; set; } = true;
-        public bool BounceMonitoringEnabled { get; set; } = false;
+        public string? Password { get; set; }
+        public string? SMTPHost { get; set; }
+        public int? SMTPPort { get; set; }
+        public string? APIKey { get; set; }
         public bool IsDefault { get; set; }
+        public string? IMAPHost { get; set; }
+        public string? IMPAUserName { get; set; }
+        public string? IMAPPassword { get; set; }
+        public int? IMAPPort { get; set; }
+        public bool IMAPSSL { get; set; } = true;
+        public string? APIEndPoint { get; set; }
         public byte Status { get; set; }
 
-        public ClientMaster Client { get; set; } = null!;
+        public MasterClient Client { get; set; } = null!;
     }
 }

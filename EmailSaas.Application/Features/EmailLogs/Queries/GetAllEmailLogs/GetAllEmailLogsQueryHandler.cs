@@ -1,4 +1,4 @@
-﻿using EmailSaas.Application.Common.Interfaces;
+using EmailSaas.Application.Common.Interfaces;
 using EmailSaas.Application.Common.Models;
 using EmailSaas.Application.DTOs.EmailLog;
 using EmailSaas.Domain.Enums;
@@ -37,11 +37,11 @@ namespace EmailSaas.Application.Features.EmailLogs.Queries.GetAllEmailLogs
                     ApplicationCode = x.Application.ApplicationCode,
                     ApplicationName = x.Application.ApplicationName,
 
-                    ClientId = x.ClientId,
+                    ClientID = x.ClientID,
                     ClientCode = x.Client.ClientCode,
                     ClientName = x.Client.ClientName,
-
-                    TemplateId = x.TemplateId,
+                    
+                    TemplateID = x.TemplateID,
                     TemplateCode = x.Template.TemplateCode,
                     TemplateName = x.Template.TemplateName,
 
@@ -59,39 +59,17 @@ namespace EmailSaas.Application.Features.EmailLogs.Queries.GetAllEmailLogs
            : "Pending",
 
                     ErrorMessage = x.ErrorMessage,
-                    SentDate = x.SentDate,
+                    SendDate = x.SendDate,
 
                     CreatedBy = x.CreatedBy,
                     CreatedDate = x.CreatedDate,
                     UpdatedBy = x.UpdatedBy,
                     UpdatedDate = x.UpdatedDate,
 
-                    // Webhook Tracking
-                    MessageId = x.MessageId,
-                    WebhookStatus = x.WebhookStatus,
+                    MessageID = x.MessageID,
 
-                    // Delivery Tracking
-                    DeliveredAt = x.DeliveredAt,
-
-                    // Open Tracking
-                    OpenedAt = x.OpenedAt,
-                    LastOpenedAt = x.LastOpenedAt,
-                    OpenCount = x.OpenCount,
-
-                    // Click Tracking
-                    ClickedAt = x.ClickedAt,
-                    LastClickedAt = x.LastClickedAt,
-                    ClickCount = x.ClickCount,
-
-                    // Attachment Tracking
                     HasAttachment = x.HasAttachment,
-                    AttachmentNames = x.AttachmentNames,
-                    AttachmentOpenedAt = x.AttachmentOpenedAt,
-                    AttachmentOpenCount = x.AttachmentOpenCount,
-
-                    // Bounce Tracking
-                    BouncedAt = x.BouncedAt,
-                    BounceReason = x.BounceReason
+                    AttachmentName = x.AttachmentName
                 })
                 .ToListAsync(cancellationToken);
 

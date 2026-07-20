@@ -1,4 +1,4 @@
-﻿using EmailSaas.Application.Common.Exceptions;
+using EmailSaas.Application.Common.Exceptions;
 using EmailSaas.Application.Common.Interfaces;
 using EmailSaas.Application.Common.Models;
 using EmailSaas.Application.DTOs.Client;
@@ -23,7 +23,7 @@ namespace EmailSaas.Application.Features.Clients.Queries.GetClientById
 
         public async Task<Result<ClientResponseDto>> Handle(GetClientByIdQuery request, CancellationToken cancellationToken)
         {
-            var entity = await _context.ClientMasters
+            var entity = await _context.MasterClients
                 .AsNoTracking()
                 .Include(x => x.Application)
                 .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);

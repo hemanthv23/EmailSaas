@@ -36,7 +36,7 @@ public class SendEmailCommandHandler : IRequestHandler<SendEmailCommand, Result<
         CancellationToken cancellationToken)
     {
         // Step 1: Validate Application exists
-        var application = await _context.ApplicationMasters
+        var application = await _context.MasterApplications
             .FirstOrDefaultAsync(x => x.Id == request.ApplicationId,
                 cancellationToken);
 
@@ -45,18 +45,18 @@ public class SendEmailCommandHandler : IRequestHandler<SendEmailCommand, Result<
                 $"Application with Id '{request.ApplicationId}' not found.");
 
         // Step 2: Validate Client exists and belongs to Application
-        var client = await _context.ClientMasters
-            .FirstOrDefaultAsync(x => x.Id == request.ClientId
+        var client = await _context.MasterClients
+            .FirstOrDefaultAsync(x => x.Id == request.ClientID
                 && x.ApplicationId == request.ApplicationId,
                 cancellationToken);
 
         if (client == null)
             return Result<SendEmailResponseDto>.Failure(
-                $"Client with Id '{request.ClientId}' not found under this Application.");
+                $"Client with Id '{request.ClientID}' not found under this Application.");
 
-        // Step 3: Fetch Template by ClientId + TemplateCode
-        var template = await _context.EmailTemplateMasters
-            .FirstOrDefaultAsync(x => x.ClientId == request.ClientId
+        // Step 3: Fetch Template by ClientID + TemplateCode
+        var template = await _context.MasterEmailTemplates
+            .FirstOrDefaultAsync(x => x.ClientID == request.ClientID
                 && x.TemplateCode == request.TemplateCode
                 && x.Status == (byte)CommonStatus.Active,
                 cancellationToken);
@@ -66,8 +66,8 @@ public class SendEmailCommandHandler : IRequestHandler<SendEmailCommand, Result<
                 $"Template '{request.TemplateCode}' not found for this client.");
 
         // Step 4: Fetch active default Email Provider for this Client
-        var providerConfig = await _context.EmailProviderConfigs
-            .FirstOrDefaultAsync(x => x.ClientId == request.ClientId
+        var providerConfig = await _context.MasterEmailProviders
+            .FirstOrDefaultAsync(x => x.ClientID == request.ClientID
                 && x.IsDefault
                 && x.Status == (byte)CommonStatus.Active,
                 cancellationToken);
@@ -82,8 +82,8 @@ public class SendEmailCommandHandler : IRequestHandler<SendEmailCommand, Result<
         var renderedBody = ReplacePlaceholders(
             template.BodyTemplate, request.Parameters);
 
-        // Step 6: Generate unique MessageId for tracking
-        var messageId = _trackingService.GenerateMessageId();
+        // Step 6: Generate unique MessageID for tracking
+        var messageId = _trackingService.GenerateMessageID();
 
         // Step 7: Inject tracking pixel + wrap all links
         var baseUrl = _configuration["TrackingSettings:BaseUrl"]
@@ -96,8 +96,9 @@ public class SendEmailCommandHandler : IRequestHandler<SendEmailCommand, Result<
         var emailLog = new EmailLog
         {
             ApplicationId = request.ApplicationId,
-            ClientId = request.ClientId,
-            TemplateId = template.Id,
+            ClientID = request.ClientID,
+            TemplateID = template.Id,
+            ProviderID = providerConfig.Id,
             ToEmail = request.ToEmail,
             CcEmail = request.CcEmail,
             BccEmail = request.BccEmail,
@@ -105,7 +106,7 @@ public class SendEmailCommandHandler : IRequestHandler<SendEmailCommand, Result<
             ParameterValues = System.Text.Json.JsonSerializer
                 .Serialize(request.Parameters),
             RenderedBody = trackedBody,
-            MessageId = messageId,
+            MessageID = messageId,
             Status = (byte)EmailSendStatus.Pending,
             CreatedBy = request.CreatedBy,
             CreatedDate = DateTime.UtcNow
@@ -131,22 +132,22 @@ public class SendEmailCommandHandler : IRequestHandler<SendEmailCommand, Result<
             cancellationToken);
 
         // Step 10: Update EmailLog with send result.
-        // SentDate = when email left our server.
+        // SendDate = when email left our server.
         // DeliveredAt = set later when tracking pixel fires (proof email reached inbox).
         var now = DateTime.UtcNow;
 
         if (success)
         {
             emailLog.Status = (byte)EmailSendStatus.Sent;
-            emailLog.WebhookStatus = EmailEventType.Sent.ToString();
-            emailLog.SentDate = now;
+            //emailLog.WebhookStatus = EmailEventLogType.Sent.ToString();
+            emailLog.SendDate = now;
             // DeliveredAt is NOT set here — it gets set automatically
             // when the recipient opens the email (tracking pixel fires).
         }
         else
         {
             emailLog.Status = (byte)EmailSendStatus.Failed;
-            emailLog.WebhookStatus = EmailEventType.Failed.ToString();
+            //emailLog.WebhookStatus = EmailEventLogType.Failed.ToString();
             emailLog.ErrorMessage = errorMessage;
         }
 
@@ -154,14 +155,16 @@ public class SendEmailCommandHandler : IRequestHandler<SendEmailCommand, Result<
         emailLog.UpdatedDate = now;
 
         // Step 11: Record raw event for audit trail (Sent or Failed)
-        var eventType = success ? EmailEventType.Sent : EmailEventType.Failed;
+        var eventType = success ? EmailEventLogType.Sent : EmailEventLogType.Failed;
 
-        _context.EmailEvents.Add(new EmailEvent
+        _context.EmailEventLogs.Add(new EmailEventLog
         {
-            EmailLogId = emailLog.Id,
+            LogID = emailLog.Id,
+            MessageID = messageId,
             EventType = eventType.ToString(),
-            EventData = System.Text.Json.JsonSerializer.Serialize(new { errorMessage }),
-            OccurredAt = now,
+            LogData = System.Text.Json.JsonSerializer.Serialize(new { errorMessage }),
+            EventLogDate = now,
+            Status = 1,
             CreatedBy = "System",
             CreatedDate = now
         });
@@ -172,17 +175,17 @@ public class SendEmailCommandHandler : IRequestHandler<SendEmailCommand, Result<
         if (!success)
         {
             await _webhookDispatcher.QueueWebhookAsync(
-                emailLog.Id, EmailEventType.Failed.ToString(), new { errorMessage }, cancellationToken);
+                emailLog.Id, EmailEventLogType.Failed.ToString(), new { errorMessage }, cancellationToken);
         }
 
         return Result<SendEmailResponseDto>.Success(new SendEmailResponseDto
         {
-            EmailLogId = emailLog.Id,
+            LogID = emailLog.Id,
             ToEmail = request.ToEmail,
             Subject = renderedSubject,
             Status = success ? "Sent" : "Failed",
             ErrorMessage = errorMessage,
-            SentDate = emailLog.SentDate
+            SendDate = emailLog.SendDate
         });
     }
 

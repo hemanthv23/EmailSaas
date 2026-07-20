@@ -1,4 +1,5 @@
-﻿using EmailSaas.Application.Common.Interfaces;
+/*
+using EmailSaas.Application.Common.Interfaces;
 using EmailSaas.Application.Common.Models;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -41,3 +42,5 @@ namespace EmailSaas.Application.Features.Webhooks.Commands.RegenerateWebhookSecr
         }
     }
 }
+
+*/

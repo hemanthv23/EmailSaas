@@ -1,4 +1,5 @@
-﻿using EmailSaas.Application.Common.Models;
+/*
+using EmailSaas.Application.Common.Models;
 using EmailSaas.Application.DTOs.Webhook;
 using MediatR;
 using System;
@@ -14,3 +15,5 @@ namespace EmailSaas.Application.Features.Webhooks.Queries.GetWebhookSubscription
         public int Id { get; set; }
     }
 }
+
+*/

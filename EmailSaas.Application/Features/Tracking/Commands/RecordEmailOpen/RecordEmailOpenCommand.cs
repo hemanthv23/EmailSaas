@@ -1,4 +1,4 @@
-﻿using EmailSaas.Application.Common.Models;
+using EmailSaas.Application.Common.Models;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -10,7 +10,7 @@ namespace EmailSaas.Application.Features.Tracking.Commands.RecordEmailOpen
 {
     public class RecordEmailOpenCommand : IRequest<Result<bool>>
     {
-        public string MessageId { get; set; } = string.Empty;
+        public string MessageID { get; set; } = string.Empty;
         public string? IpAddress { get; set; }
         public string? UserAgent { get; set; }
     }

@@ -21,7 +21,7 @@ public class EmailSenderService : IEmailSenderService
     }
 
     public async Task<(bool Success, string? ErrorMessage)> SendAsync(
-    EmailProviderConfig providerConfig,
+    MasterEmailProvider providerConfig,
     string toEmail,
     string? ccEmail,
     string? bccEmail,
@@ -46,8 +46,8 @@ public class EmailSenderService : IEmailSenderService
                     cancellationToken);
             }
 
-            var hasSmtpConfig = !string.IsNullOrEmpty(providerConfig.SmtpHost);
-            var hasApiKeyConfig = !string.IsNullOrEmpty(providerConfig.ApiKeyEncrypted);
+            var hasSmtpConfig = !string.IsNullOrEmpty(providerConfig.SMTPHost);
+            var hasApiKeyConfig = !string.IsNullOrEmpty(providerConfig.APIKey);
 
             if (hasSmtpConfig)
             {
@@ -88,7 +88,7 @@ public class EmailSenderService : IEmailSenderService
     #region SendViaMicrosoftGraphAsync
     // ─── Microsoft Graph API ───────────────────────────────────
     private async Task<(bool Success, string? ErrorMessage)> SendViaMicrosoftGraphAsync(
-        EmailProviderConfig config,
+        MasterEmailProvider config,
         string toEmail,
         string? ccEmail,
         string? bccEmail,
@@ -102,26 +102,26 @@ public class EmailSenderService : IEmailSenderService
             // TenantId reuses UserName column
             var tenantId = config.UserName;
 
-            var azureClientId = config.ApiKeyEncrypted ?? string.Empty;
+            var azureClientID = config.APIKey ?? string.Empty;
 
             // Client Secret (Encrypted)
-            var clientSecret = !string.IsNullOrEmpty(config.PasswordEncrypted)
-                ? _encryptionService.Decrypt(config.PasswordEncrypted)
+            var clientSecret = !string.IsNullOrEmpty(config.Password)
+                ? _encryptionService.Decrypt(config.Password)
                 : string.Empty;
 
             if (string.IsNullOrEmpty(tenantId)
-                || string.IsNullOrEmpty(azureClientId)
+                || string.IsNullOrEmpty(azureClientID)
                 || string.IsNullOrEmpty(clientSecret))
             {
                 return (false,
-                    "Microsoft Graph requires TenantId (UserName), AzureClientId (ApiKey) and ClientSecret (Password).");
+                    "Microsoft Graph requires TenantId (UserName), AzureClientID (ApiKey) and ClientSecret (Password).");
             }
 
 
 
             // Get OAuth2 token using Client Credentials flow
             var credential = new ClientSecretCredential(
-                tenantId, azureClientId, clientSecret);
+                tenantId, azureClientID, clientSecret);
 
             var graphClient = new GraphServiceClient(credential);
 
@@ -166,7 +166,7 @@ public class EmailSenderService : IEmailSenderService
                 };
             }
 
-            // ─── Custom headers (e.g. X-EmailSaas-MessageId for bounce matching) ───
+            // ─── Custom headers (e.g. X-EmailSaas-MessageID for bounce matching) ───
             if (customHeaders != null && customHeaders.Count > 0)
             {
                 message.InternetMessageHeaders = customHeaders
@@ -200,7 +200,7 @@ public class EmailSenderService : IEmailSenderService
     #region SendViaSmtpAsync
     // ─── SMTP (works for ANY SMTP-based provider) ─────────────
     private async Task<(bool Success, string? ErrorMessage)> SendViaSmtpAsync(
-        EmailProviderConfig config,
+        MasterEmailProvider config,
         string toEmail,
         string? ccEmail,
         string? bccEmail,
@@ -211,8 +211,8 @@ public class EmailSenderService : IEmailSenderService
     {
         try
         {
-            var decryptedPassword = !string.IsNullOrEmpty(config.PasswordEncrypted)
-                ? _encryptionService.Decrypt(config.PasswordEncrypted)
+            var decryptedPassword = !string.IsNullOrEmpty(config.Password)
+                ? _encryptionService.Decrypt(config.Password)
                 : string.Empty;
 
             var message = new MimeMessage();
@@ -247,7 +247,7 @@ public class EmailSenderService : IEmailSenderService
             message.Headers.Add("Disposition-Notification-To", config.SenderEmail);
             message.Headers.Add("Return-Receipt-To", config.SenderEmail);
 
-            // ─── Custom headers (e.g. X-EmailSaas-MessageId for bounce matching) ───
+            // ─── Custom headers (e.g. X-EmailSaas-MessageID for bounce matching) ───
             if (customHeaders != null)
             {
                 foreach (var header in customHeaders)
@@ -264,13 +264,13 @@ public class EmailSenderService : IEmailSenderService
             using var smtp = new SmtpClient();
 
             await smtp.ConnectAsync(
-                config.SmtpHost,
-                config.SmtpPort ?? 587,
+                config.SMTPHost!,
+                config.SMTPPort ?? 587,
                 SecureSocketOptions.StartTls,
                 cancellationToken);
 
             await smtp.AuthenticateAsync(
-                config.UserName,
+                config.UserName ?? "",
                 decryptedPassword,
                 cancellationToken);
 
@@ -291,7 +291,7 @@ public class EmailSenderService : IEmailSenderService
     // ─── Generic API-key based provider ──
     // (works with a generic REST email API that uses an API key)
     private async Task<(bool Success, string? ErrorMessage)> SendViaApiProviderAsync(
-        EmailProviderConfig config,
+        MasterEmailProvider config,
         string toEmail,
         string? ccEmail,
         string? bccEmail,
@@ -302,8 +302,8 @@ public class EmailSenderService : IEmailSenderService
     {
         try
         {
-            var decryptedApiKey = !string.IsNullOrEmpty(config.ApiKeyEncrypted)
-                ? _encryptionService.Decrypt(config.ApiKeyEncrypted)
+            var decryptedApiKey = !string.IsNullOrEmpty(config.APIKey)
+                ? _encryptionService.Decrypt(config.APIKey)
                 : string.Empty;
 
             if (string.IsNullOrEmpty(decryptedApiKey))
@@ -329,8 +329,8 @@ public class EmailSenderService : IEmailSenderService
             var jsonContent = new StringContent(System.Text.Json.JsonSerializer.Serialize(payload), System.Text.Encoding.UTF8, "application/json");
             
             // Use the API Endpoint provided in the configuration, fallback to the hardcoded dummy one if not provided
-            var apiEndpoint = !string.IsNullOrWhiteSpace(config.ApiEndpoint) 
-                ? config.ApiEndpoint 
+            var apiEndpoint = !string.IsNullOrWhiteSpace(config.APIEndPoint) 
+                ? config.APIEndPoint 
                 : "https://api.email-provider.example.com/v1/send";
 
             var response = await httpClient.PostAsync(apiEndpoint, jsonContent, cancellationToken);

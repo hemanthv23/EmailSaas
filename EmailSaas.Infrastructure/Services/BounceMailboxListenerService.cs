@@ -23,8 +23,8 @@ namespace EmailSaas.Infrastructure.Services
         private readonly ILogger<BounceMailboxListenerService> _logger;
         private const int PollingIntervalSeconds = 120;
 
-        private static readonly Regex MessageIdHeaderPattern =
-            new(@"X-EmailSaas-MessageId:\s*(MSG-[A-F0-9]+)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private static readonly Regex MessageIDHeaderPattern =
+            new(@"X-EmailSaas-MessageID:\s*(MSG-[A-F0-9]+)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         public BounceMailboxListenerService(
             IServiceScopeFactory scopeFactory,
@@ -59,10 +59,8 @@ namespace EmailSaas.Infrastructure.Services
             var context = scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
             var encryptionService = scope.ServiceProvider.GetRequiredService<IEncryptionService>();
 
-            var configs = await context.EmailProviderConfigs
-                .Where(x => x.BounceMonitoringEnabled
-                         && x.Status == 1
-                         && x.ImapHost != null)
+            var configs = await context.MasterEmailProviders
+                .Where(x => x.Status == 1 && x.IMAPHost != null)
                 .ToListAsync(stoppingToken);
 
             if (configs.Count == 0)
@@ -78,50 +76,50 @@ namespace EmailSaas.Infrastructure.Services
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to process bounce mailbox for ClientId={ClientId}", config.ClientId);
+                    _logger.LogError(ex, "Failed to process bounce mailbox for ClientID={ClientID}", config.ClientID);
                 }
             }
         }
 
         private async Task ProcessSingleMailboxAsync(
-    EmailSaas.Domain.Entities.EmailProviderConfig config,
+    EmailSaas.Domain.Entities.MasterEmailProvider config,
     IEncryptionService encryptionService,
     IMediator mediator,
     CancellationToken stoppingToken)
         {
-            var targetMailbox = config.ImapUserName ?? config.SenderEmail;
+            var targetMailbox = config.IMPAUserName ?? config.SenderEmail;
             var isGraphApi = config.ProviderName?.Contains("Graph", StringComparison.OrdinalIgnoreCase) == true || 
                              config.ProviderName?.Contains("Microsoft", StringComparison.OrdinalIgnoreCase) == true;
 
             using var client = new ImapClient(new ProtocolLogger(Console.OpenStandardOutput()));
 
-            await client.ConnectAsync(config.ImapHost, config.ImapPort ?? 993,
-                config.ImapUseSsl ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.StartTls,
+            await client.ConnectAsync(config.IMAPHost, config.IMAPPort ?? 993,
+                config.IMAPSSL ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.StartTls,
                 stoppingToken);
 
             _logger.LogWarning(
                 "IMAP login. Provider={Provider}, Username={Username}, Host={Host}, Port={Port}",
                 config.ProviderName,
                 targetMailbox,
-                config.ImapHost,
-                config.ImapPort);
+                config.IMAPHost,
+                config.IMAPPort);
 
             if (isGraphApi)
             {
                 var tenantId = config.UserName;
-                var azureClientId = config.ApiKeyEncrypted ?? string.Empty;
-                var clientSecret = !string.IsNullOrEmpty(config.PasswordEncrypted)
-                    ? encryptionService.Decrypt(config.PasswordEncrypted)
+                var azureClientID = config.APIKey ?? string.Empty;
+                var clientSecret = !string.IsNullOrEmpty(config.Password)
+                    ? encryptionService.Decrypt(config.Password)
                     : string.Empty;
 
-                if (string.IsNullOrEmpty(tenantId) || string.IsNullOrEmpty(azureClientId) ||
+                if (string.IsNullOrEmpty(tenantId) || string.IsNullOrEmpty(azureClientID) ||
                     string.IsNullOrEmpty(clientSecret) || string.IsNullOrEmpty(targetMailbox))
                 {
-                    _logger.LogWarning("ClientId={ClientId}: missing Graph credentials or target mailbox UPN.", config.ClientId);
+                    _logger.LogWarning("ClientID={ClientID}: missing Graph credentials or target mailbox UPN.", config.ClientID);
                     return;
                 }
 
-                var credential = new ClientSecretCredential(tenantId, azureClientId, clientSecret);
+                var credential = new ClientSecretCredential(tenantId, azureClientID, clientSecret);
                 var tokenRequestContext = new TokenRequestContext(new[] { "https://outlook.office365.com/.default" });
                 var accessToken = await credential.GetTokenAsync(tokenRequestContext, stoppingToken);
 
@@ -133,16 +131,16 @@ namespace EmailSaas.Infrastructure.Services
             }
             else
             {
-                var imapUser = config.ImapUserName ?? config.UserName ?? config.SenderEmail;
-                var imapPassword = !string.IsNullOrEmpty(config.ImapPasswordEncrypted)
-                    ? encryptionService.Decrypt(config.ImapPasswordEncrypted)
-                    : (!string.IsNullOrEmpty(config.PasswordEncrypted) 
-                        ? encryptionService.Decrypt(config.PasswordEncrypted) 
+                var imapUser = config.IMPAUserName ?? config.UserName ?? config.SenderEmail;
+                var imapPassword = !string.IsNullOrEmpty(config.IMAPPassword)
+                    ? encryptionService.Decrypt(config.IMAPPassword)
+                    : (!string.IsNullOrEmpty(config.Password) 
+                        ? encryptionService.Decrypt(config.Password) 
                         : string.Empty);
 
                 if (string.IsNullOrEmpty(imapUser) || string.IsNullOrEmpty(imapPassword))
                 {
-                    _logger.LogWarning("ClientId={ClientId}: missing IMAP credentials for basic auth.", config.ClientId);
+                    _logger.LogWarning("ClientID={ClientID}: missing IMAP credentials for basic auth.", config.ClientID);
                     return;
                 }
 
@@ -161,7 +159,7 @@ namespace EmailSaas.Infrastructure.Services
                 return;
             }
 
-            _logger.LogInformation("ClientId={ClientId}: found {Count} unread bounce candidates.", config.ClientId, unreadIds.Count);
+            _logger.LogInformation("ClientID={ClientID}: found {Count} unread bounce candidates.", config.ClientID, unreadIds.Count);
 
             foreach (var uid in unreadIds)
             {
@@ -169,28 +167,28 @@ namespace EmailSaas.Infrastructure.Services
 
                 if (!IsBounceMessage(message))
                 {
-                    _logger.LogInformation("ClientId={ClientId}: Message {Uid} skipped. Not identified as a bounce message. Subject: '{Subject}'", config.ClientId, uid, message.Subject);
+                    _logger.LogInformation("ClientID={ClientID}: Message {Uid} skipped. Not identified as a bounce message. Subject: '{Subject}'", config.ClientID, uid, message.Subject);
                     await inbox.AddFlagsAsync(uid, MessageFlags.Seen, true, stoppingToken);
                     continue;
                 }
 
-                var originalMessageId = ExtractOriginalMessageId(message);
+                var originalMessageID = ExtractOriginalMessageID(message);
 
-                if (!string.IsNullOrEmpty(originalMessageId))
+                if (!string.IsNullOrEmpty(originalMessageID))
                 {
                     var result = await mediator.Send(new RecordEmailBouncedCommand
                     {
-                        MessageId = originalMessageId,
+                        MessageID = originalMessageID,
                         BounceReason = ExtractBounceReason(message),
                         IsHardBounce = DetermineIfHardBounce(message)
                     }, stoppingToken);
 
                     if (!result.Succeeded)
-                        _logger.LogWarning("Bounce mail matched no EmailLog: MessageId={MessageId}", originalMessageId);
+                        _logger.LogWarning("Bounce mail matched no EmailLog: MessageID={MessageID}", originalMessageID);
                 }
                 else
                 {
-                    _logger.LogWarning("ClientId={ClientId}: Message {Uid} identified as bounce, but could not extract X-EmailSaas-MessageId.", config.ClientId, uid);
+                    _logger.LogWarning("ClientID={ClientID}: Message {Uid} identified as bounce, but could not extract X-EmailSaas-MessageID.", config.ClientID, uid);
                 }
 
                 await inbox.AddFlagsAsync(uid, MessageFlags.Seen, true, stoppingToken);
@@ -209,20 +207,20 @@ namespace EmailSaas.Infrastructure.Services
                 || message.Headers.Contains("X-Failed-Recipients");
         }
 
-        private static string? ExtractOriginalMessageId(MimeMessage message)
+        private static string? ExtractOriginalMessageID(MimeMessage message)
         {
             foreach (var part in message.BodyParts)
             {
                 if (part is MessagePart rfc822 && rfc822.Message != null)
                 {
-                    var headerValue = rfc822.Message.Headers["X-EmailSaas-MessageId"];
+                    var headerValue = rfc822.Message.Headers["X-EmailSaas-MessageID"];
                     if (!string.IsNullOrEmpty(headerValue))
                         return headerValue;
                 }
             }
 
             var fullText = (message.TextBody ?? string.Empty) + " " + (message.HtmlBody ?? string.Empty);
-            var match = MessageIdHeaderPattern.Match(fullText);
+            var match = MessageIDHeaderPattern.Match(fullText);
             return match.Success ? match.Groups[1].Value : null;
         }
 

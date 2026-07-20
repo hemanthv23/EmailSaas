@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using EmailSaas.Infrastructure.Persistence;
 
 namespace EmailSaas.API.Middleware;
@@ -47,7 +47,7 @@ public class ApiKeyMiddleware
 
         // Validate API key against DB
         var apiKey = extractedApiKey.ToString();
-        var application = await dbContext.ApplicationMasters
+        var application = await dbContext.MasterApplications
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.ApiKey == apiKey && x.Status == 1);
 

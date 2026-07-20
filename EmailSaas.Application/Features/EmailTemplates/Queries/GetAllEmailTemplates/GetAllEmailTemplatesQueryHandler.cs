@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using EmailSaas.Application.Common.Interfaces;
 using EmailSaas.Application.Common.Models;
@@ -17,7 +17,7 @@ public class GetAllEmailTemplatesQueryHandler : IRequestHandler<GetAllEmailTempl
 
     public async Task<Result<List<EmailTemplateResponseDto>>> Handle(GetAllEmailTemplatesQuery request, CancellationToken cancellationToken)
     {
-        var templates = await _context.EmailTemplateMasters
+        var templates = await _context.MasterEmailTemplates
             .AsNoTracking()
             .Include(x => x.Client)
             .ThenInclude(x => x.Application)
@@ -26,7 +26,7 @@ public class GetAllEmailTemplatesQueryHandler : IRequestHandler<GetAllEmailTempl
             .Select(x => new EmailTemplateResponseDto
             {
                 Id = x.Id,
-                ClientId = x.ClientId,
+                ClientID = x.ClientID,
                 ClientCode = x.Client.ClientCode,
                 ClientName = x.Client.ClientName,
                 TemplateCode = x.TemplateCode,

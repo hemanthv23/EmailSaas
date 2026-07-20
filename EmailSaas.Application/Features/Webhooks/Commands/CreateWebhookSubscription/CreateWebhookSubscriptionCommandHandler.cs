@@ -1,4 +1,5 @@
-﻿using EmailSaas.Application.Common.Interfaces;
+/*
+using EmailSaas.Application.Common.Interfaces;
 using EmailSaas.Application.Common.Models;
 using EmailSaas.Application.DTOs.Webhook;
 using EmailSaas.Domain.Entities;
@@ -27,16 +28,16 @@ namespace EmailSaas.Application.Features.Webhooks.Commands.CreateWebhookSubscrip
         public async Task<Result<WebhookSubscriptionResponseDto>> Handle(
             CreateWebhookSubscriptionCommand request, CancellationToken cancellationToken)
         {
-            var client = await _context.ClientMasters
-                .FirstOrDefaultAsync(x => x.Id == request.ClientId, cancellationToken);
+            var client = await _context.MasterClients
+                .FirstOrDefaultAsync(x => x.Id == request.ClientID, cancellationToken);
 
             if (client == null)
                 return Result<WebhookSubscriptionResponseDto>.Failure(
-                    $"Client with Id '{request.ClientId}' not found.");
+                    $"Client with Id '{request.ClientID}' not found.");
 
             // Prevent duplicate: same client + same callback URL already registered
             var duplicate = await _context.WebhookSubscriptions
-                .AnyAsync(x => x.ClientId == request.ClientId
+                .AnyAsync(x => x.ClientID == request.ClientID
                              && x.CallbackUrl == request.CallbackUrl
                              && x.Status == (byte)CommonStatus.Active, cancellationToken);
 
@@ -48,7 +49,7 @@ namespace EmailSaas.Application.Features.Webhooks.Commands.CreateWebhookSubscrip
 
             var entity = new WebhookSubscription
             {
-                ClientId = request.ClientId,
+                ClientID = request.ClientID,
                 CallbackUrl = request.CallbackUrl,
                 Secret = secret,
                 EventTypes = string.Join(",", request.EventTypes),
@@ -63,7 +64,7 @@ namespace EmailSaas.Application.Features.Webhooks.Commands.CreateWebhookSubscrip
             var response = new WebhookSubscriptionResponseDto
             {
                 Id = entity.Id,
-                ClientId = entity.ClientId,
+                ClientID = entity.ClientID,
                 ClientName = client.ClientName,
                 CallbackUrl = entity.CallbackUrl,
                 Secret = entity.Secret, // returned only here, on creation — client must store it now
@@ -85,3 +86,5 @@ namespace EmailSaas.Application.Features.Webhooks.Commands.CreateWebhookSubscrip
         }
     }
 }
+
+*/

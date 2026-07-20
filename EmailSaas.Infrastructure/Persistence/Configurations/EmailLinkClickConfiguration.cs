@@ -1,4 +1,5 @@
-﻿using EmailSaas.Domain.Entities;
+/*
+using EmailSaas.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
@@ -32,10 +33,12 @@ namespace EmailSaas.Infrastructure.Persistence.Configurations
 
             builder.HasOne(x => x.EmailLog)
                 .WithMany(x => x.LinkClicks)
-                .HasForeignKey(x => x.EmailLogId)
+                .HasForeignKey(x => x.LogID)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasIndex(x => x.EmailLogId);
+            builder.HasIndex(x => x.LogID);
         }
     }
 }
+
+*/

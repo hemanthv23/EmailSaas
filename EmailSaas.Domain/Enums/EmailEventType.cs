@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace EmailSaas.Domain.Enums
 {
-    public enum EmailEventType : byte
+    public enum EmailEventLogType : byte
     {
         Sent = 1,
         Delivered = 2,

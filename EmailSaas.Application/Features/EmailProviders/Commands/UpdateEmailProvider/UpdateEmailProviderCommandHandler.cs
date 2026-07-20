@@ -26,16 +26,16 @@ namespace EmailSaas.Application.Features.EmailProviders.Commands.UpdateEmailProv
             UpdateEmailProviderCommand request,
             CancellationToken cancellationToken)
         {
-            var entity = await _context.EmailProviderConfigs
+            var entity = await _context.MasterEmailProviders
                 .Include(x => x.Client)
                 .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
             if (entity == null)
-                throw new NotFoundException("EmailProviderConfig", request.Id);
+                throw new NotFoundException("MasterEmailProvider", request.Id);
             // If setting this as default, unset other defaults for the same client
             if (request.IsDefault && !entity.IsDefault)
             {
-                var existingDefaults = await _context.EmailProviderConfigs
-                    .Where(x => x.ClientId == entity.ClientId
+                var existingDefaults = await _context.MasterEmailProviders
+                    .Where(x => x.ClientID == entity.ClientID
                              && x.IsDefault
                              && x.Id != entity.Id)
                     .ToListAsync(cancellationToken);
@@ -46,8 +46,8 @@ namespace EmailSaas.Application.Features.EmailProviders.Commands.UpdateEmailProv
             entity.SenderName = request.SenderName;
             entity.SenderEmail = request.SenderEmail;
             entity.ReplyToEmail = request.ReplyToEmail;
-            entity.SmtpHost = request.SmtpHost;
-            entity.SmtpPort = request.SmtpPort;
+            entity.SMTPHost = request.SMTPHost;
+            entity.SMTPPort = request.SMTPPort;
             entity.UserName = request.UserName;
             entity.IsDefault = request.IsDefault;
             entity.UpdatedBy = request.UpdatedBy;
@@ -55,39 +55,39 @@ namespace EmailSaas.Application.Features.EmailProviders.Commands.UpdateEmailProv
             // ✅ Only update Password/ApiKey if a new value was actually provided
             // — keeps existing encrypted credential if left blank
             if (!string.IsNullOrEmpty(request.Password))
-                entity.PasswordEncrypted = _encryptionService.Encrypt(request.Password);
+                entity.Password = _encryptionService.Encrypt(request.Password);
             if (!string.IsNullOrWhiteSpace(request.ApiKey))
-                entity.ApiKeyEncrypted = request.ApiKey;
-            if (!string.IsNullOrWhiteSpace(request.ApiEndpoint))
-                entity.ApiEndpoint = request.ApiEndpoint;
+                entity.APIKey = request.ApiKey;
+            if (!string.IsNullOrWhiteSpace(request.APIEndPoint))
+                entity.APIEndPoint = request.APIEndPoint;
 
             // ─── New: IMAP bounce mailbox fields — only update if provided ───
-            if (!string.IsNullOrWhiteSpace(request.ImapHost))
-                entity.ImapHost = request.ImapHost;
-            if (request.ImapPort.HasValue)
-                entity.ImapPort = request.ImapPort;
-            if (!string.IsNullOrWhiteSpace(request.ImapUserName))
-                entity.ImapUserName = request.ImapUserName;
-            if (!string.IsNullOrEmpty(request.ImapPassword))
-                entity.ImapPasswordEncrypted = _encryptionService.Encrypt(request.ImapPassword);
-            if (request.ImapUseSsl.HasValue)
-                entity.ImapUseSsl = request.ImapUseSsl.Value;
-            if (request.BounceMonitoringEnabled.HasValue)
-                entity.BounceMonitoringEnabled = request.BounceMonitoringEnabled.Value;
+            if (!string.IsNullOrWhiteSpace(request.IMAPHost))
+                entity.IMAPHost = request.IMAPHost;
+            if (request.IMAPPort.HasValue)
+                entity.IMAPPort = request.IMAPPort;
+            if (!string.IsNullOrWhiteSpace(request.IMPAUserName))
+                entity.IMPAUserName = request.IMPAUserName;
+            if (!string.IsNullOrEmpty(request.IMAPPassword))
+                entity.IMAPPassword = _encryptionService.Encrypt(request.IMAPPassword);
+            if (request.IMAPSSL.HasValue)
+                entity.IMAPSSL = request.IMAPSSL.Value;
+//            if (request.BounceMonitoringEnabled.HasValue)
+//                entity.BounceMonitoringEnabled = request.BounceMonitoringEnabled.Value;
 
             await _context.SaveChangesAsync(cancellationToken);
             var response = new EmailProviderResponseDto
             {
                 Id = entity.Id,
-                ClientId = entity.ClientId,
+                ClientID = entity.ClientID,
                 ClientCode = entity.Client.ClientCode,
                 ClientName = entity.Client.ClientName,
                 ProviderName = entity.ProviderName,
                 SenderName = entity.SenderName,
                 SenderEmail = entity.SenderEmail,
                 ReplyToEmail = entity.ReplyToEmail,
-                SmtpHost = entity.SmtpHost,
-                SmtpPort = entity.SmtpPort,
+                SMTPHost = entity.SMTPHost,
+                SMTPPort = entity.SMTPPort,
                 UserName = entity.UserName,
                 IsDefault = entity.IsDefault,
                 Status = entity.Status,

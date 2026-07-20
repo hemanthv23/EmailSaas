@@ -10,7 +10,7 @@ namespace EmailSaas.Application.Features.Tracking.Commands.RecordEmailDelivered
 {
     public class RecordEmailDeliveredCommand : IRequest<Result<bool>>
     {
-        public string MessageId { get; set; } = string.Empty;
+        public string MessageID { get; set; } = string.Empty;
         public string? ProviderResponse { get; set; }
         public DateTime? DeliveredAt { get; set; }
     }

@@ -1,4 +1,4 @@
-﻿using EmailSaas.Domain.Entities;
+using EmailSaas.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
@@ -9,12 +9,14 @@ using System.Threading.Tasks;
 
 namespace EmailSaas.Infrastructure.Persistence.Configurations
 {
-    public class ClientMasterConfiguration : IEntityTypeConfiguration<ClientMaster>
+    public class MasterClientConfiguration : IEntityTypeConfiguration<MasterClient>
     {
-        public void Configure(EntityTypeBuilder<ClientMaster> builder)
+        public void Configure(EntityTypeBuilder<MasterClient> builder)
         {
             builder.ToTable("MasterClient");
             builder.HasKey(x => x.Id);
+            builder.Property(x => x.Id).HasColumnName("ClientID");
+            builder.Property(x => x.ApplicationId).HasColumnName("AppID");
 
             builder.Property(x => x.ClientCode).HasMaxLength(50).IsRequired();
             builder.Property(x => x.ClientName).HasMaxLength(200).IsRequired();

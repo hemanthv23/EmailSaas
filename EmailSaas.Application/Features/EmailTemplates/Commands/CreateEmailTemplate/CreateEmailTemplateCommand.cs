@@ -1,4 +1,4 @@
-﻿using EmailSaas.Application.Common.Models;
+using EmailSaas.Application.Common.Models;
 using EmailSaas.Application.DTOs.EmailTemplate;
 using MediatR;
 using System;

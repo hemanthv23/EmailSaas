@@ -1,4 +1,4 @@
-﻿using EmailSaas.Application.Common.Interfaces;
+using EmailSaas.Application.Common.Interfaces;
 using EmailSaas.Application.Common.Models;
 using EmailSaas.Application.DTOs.Client;
 using EmailSaas.Domain.Entities;
@@ -25,20 +25,20 @@ namespace EmailSaas.Application.Features.Clients.Commands.CreateClient
         public async Task<Result<ClientResponseDto>> Handle(CreateClientCommand request, CancellationToken cancellationToken)
         {
             // Check application exists
-            var application = await _context.ApplicationMasters
+            var application = await _context.MasterApplications
                 .FirstOrDefaultAsync(x => x.Id == request.ApplicationId, cancellationToken);
 
             if (application == null)
                 return Result<ClientResponseDto>.Failure($"Application with Id '{request.ApplicationId}' not found.");
 
             // Check duplicate client code
-            var exists = await _context.ClientMasters
+            var exists = await _context.MasterClients
                 .AnyAsync(x => x.ClientCode == request.ClientCode, cancellationToken);
 
             if (exists)
                 return Result<ClientResponseDto>.Failure($"ClientCode '{request.ClientCode}' already exists.");
 
-            var entity = new ClientMaster
+            var entity = new MasterClient
             {
                 ApplicationId = request.ApplicationId,
                 ClientCode = request.ClientCode,
@@ -50,7 +50,7 @@ namespace EmailSaas.Application.Features.Clients.Commands.CreateClient
                 CreatedDate = DateTime.UtcNow
             };
 
-            _context.ClientMasters.Add(entity);
+            _context.MasterClients.Add(entity);
             await _context.SaveChangesAsync(cancellationToken);
 
             var response = new ClientResponseDto

@@ -9,7 +9,7 @@ namespace EmailSaas.Application.DTOs.SendEmail
     public class SendEmailRequestDto
     {
         public int ApplicationId { get; set; }
-        public int ClientId { get; set; }
+        public int ClientID { get; set; }
         public string TemplateCode { get; set; } = string.Empty;
         public string ToEmail { get; set; } = string.Empty;
         public string? CcEmail { get; set; }

@@ -1,4 +1,4 @@
-﻿using EmailSaas.Application.Common.Exceptions;
+using EmailSaas.Application.Common.Exceptions;
 using EmailSaas.Application.Common.Interfaces;
 using EmailSaas.Application.Common.Models;
 using EmailSaas.Application.DTOs.EmailTemplate;
@@ -23,18 +23,18 @@ namespace EmailSaas.Application.Features.EmailTemplates.Queries.GetEmailTemplate
 
         public async Task<Result<EmailTemplateResponseDto>> Handle(GetEmailTemplateByIdQuery request, CancellationToken cancellationToken)
         {
-            var entity = await _context.EmailTemplateMasters
+            var entity = await _context.MasterEmailTemplates
                 .AsNoTracking()
                 .Include(x => x.Client)
                 .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
 
             if (entity == null)
-                throw new NotFoundException("EmailTemplateMaster", request.Id);
+                throw new NotFoundException("MasterEmailTemplate", request.Id);
 
             var response = new EmailTemplateResponseDto
             {
                 Id = entity.Id,
-                ClientId = entity.ClientId,
+                ClientID = entity.ClientID,
                 ClientCode = entity.Client.ClientCode,
                 ClientName = entity.Client.ClientName,
                 TemplateCode = entity.TemplateCode,

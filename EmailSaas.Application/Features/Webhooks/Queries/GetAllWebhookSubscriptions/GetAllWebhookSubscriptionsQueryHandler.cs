@@ -1,4 +1,5 @@
-﻿using EmailSaas.Application.Common.Interfaces;
+/*
+using EmailSaas.Application.Common.Interfaces;
 using EmailSaas.Application.Common.Models;
 using EmailSaas.Application.DTOs.Webhook;
 using MediatR;
@@ -26,12 +27,12 @@ namespace EmailSaas.Application.Features.Webhooks.Queries.GetAllWebhookSubscript
         {
             var query = _context.WebhookSubscriptions
                 .Include(x => x.Client)
-                .Where(x => x.ClientId == request.ClientId)
+                .Where(x => x.ClientID == request.ClientID)
                 .OrderByDescending(x => x.CreatedDate)
                 .Select(x => new WebhookSubscriptionResponseDto
                 {
                     Id = x.Id,
-                    ClientId = x.ClientId,
+                    ClientID = x.ClientID,
                     ClientName = x.Client.ClientName,
                     CallbackUrl = x.CallbackUrl,
                     Secret = "••••••••", // never expose secret again after creation
@@ -50,3 +51,5 @@ namespace EmailSaas.Application.Features.Webhooks.Queries.GetAllWebhookSubscript
         }
     }
 }
+
+*/

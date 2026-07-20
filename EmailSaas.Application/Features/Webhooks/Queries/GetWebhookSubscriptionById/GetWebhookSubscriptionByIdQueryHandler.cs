@@ -1,4 +1,5 @@
-﻿using EmailSaas.Application.Common.Interfaces;
+/*
+using EmailSaas.Application.Common.Interfaces;
 using EmailSaas.Application.Common.Models;
 using EmailSaas.Application.DTOs.Webhook;
 using MediatR;
@@ -35,7 +36,7 @@ namespace EmailSaas.Application.Features.Webhooks.Queries.GetWebhookSubscription
             var response = new WebhookSubscriptionResponseDto
             {
                 Id = entity.Id,
-                ClientId = entity.ClientId,
+                ClientID = entity.ClientID,
                 ClientName = entity.Client.ClientName,
                 CallbackUrl = entity.CallbackUrl,
                 Secret = "••••••••",
@@ -51,3 +52,5 @@ namespace EmailSaas.Application.Features.Webhooks.Queries.GetWebhookSubscription
         }
     }
 }
+
+*/

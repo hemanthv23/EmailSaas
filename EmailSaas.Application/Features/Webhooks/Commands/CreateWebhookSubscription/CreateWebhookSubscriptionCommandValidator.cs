@@ -1,4 +1,5 @@
-﻿using EmailSaas.Domain.Enums;
+/*
+using EmailSaas.Domain.Enums;
 using FluentValidation;
 using System;
 using System.Collections.Generic;
@@ -15,7 +16,7 @@ namespace EmailSaas.Application.Features.Webhooks.Commands.CreateWebhookSubscrip
 
         public CreateWebhookSubscriptionCommandValidator()
         {
-            RuleFor(x => x.ClientId).GreaterThan(0).WithMessage("Valid ClientId is required.");
+            RuleFor(x => x.ClientID).GreaterThan(0).WithMessage("Valid ClientID is required.");
 
             RuleFor(x => x.CallbackUrl)
                 .NotEmpty().WithMessage("CallbackUrl is required.")
@@ -37,3 +38,5 @@ namespace EmailSaas.Application.Features.Webhooks.Commands.CreateWebhookSubscrip
         }
     }
 }
+
+*/

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,7 +8,7 @@ namespace EmailSaas.Application.DTOs.Webhook
 {
     public class WebhookSubscriptionRequestDto
     {
-        public int ClientId { get; set; }
+        public int ClientID { get; set; }
         public string CallbackUrl { get; set; } = string.Empty;
         public List<string> EventTypes { get; set; } = new(); // e.g. ["Delivered","Opened","Clicked","Bounced"]
         public string CreatedBy { get; set; } = string.Empty;
