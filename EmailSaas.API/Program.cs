@@ -12,7 +12,7 @@ builder.Services.AddApplicationServices();
 // Infrastructure layer (DbContext + IApplicationDbContext + EmailSenderService)
 builder.Services.AddInfrastructureServices(builder.Configuration);
 
-// ✅ CORS — allow any origin since actual security is enforced
+// ✅ CORS — allow any origin since actual security is enforced .
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
